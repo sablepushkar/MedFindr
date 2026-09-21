@@ -1,96 +1,74 @@
 # MedFindr
 
-**Version: X1.0 (Defined Version)**  
-**Status:** Solid developmental base – Defined milestone
+**Version: X1.0** (with practical upgrades)
 
-MedFindr is a structured and explainable health-concern assistant created as a focused med × pharma portfolio project.  
-It takes a free-text health concern and returns a clear, sectioned, transparent response suitable for patients or pharmacy/clinic staff.
+MedFindr is a structured health-concern assistant I built as a focused med × pharma portfolio project.  
+It takes a free-text description of a health issue and returns a clear, sectioned response that can be useful for both patients and pharmacy/clinic staff.
 
-This X1.0 release marks a defined, stable foundation. The architecture is clean, extensible, and ready for further practical development.
+The goal was to keep everything transparent, clean, and easy to extend later.
 
 ---
 
-### Core Capabilities (X1.0)
+### What it currently does
 
-- Structured Response Engine
-- Transparent rule-based urgency & red-flag assessment
-- Explainable risk layer (EBM interface + training pipeline)
-- Patient / Staff dual view
-- Evaluation script against labelled set
-- OpenFDA drug lookup with safety-relevant fields
-- Clean separation of concerns
+- Breaks a health concern into structured sections
+- Runs a transparent rule-based urgency / red-flag check
+- Has an explainable risk layer (EBM) – you can train a real model with one command
+- Supports simple Patient / Staff dual view
+- Looks up basic drug information via OpenFDA
+- Comes with an evaluation script so you can measure the urgency engine
 
-### Quick Start
+### How to run
 
 ```bash
-git clone https://github.com/sablepushkar/MedFindr.git
-cd MedFindr
 pip install -r requirements.txt
 streamlit run app.py
 ```
 
-### Recommended Setup
+### Train the EBM model (recommended)
 
 ```bash
-# Train the Explainable Boosting Machine (optional but recommended)
 python scripts/train_ebm.py
+```
 
-# Run evaluation
+After training, just restart the app and it will use the real model automatically.
+
+### Run evaluation
+
+```bash
 python scripts/evaluate.py
 ```
 
-### Important Notice
+### Important
 
-**This is not medical advice.**  
-MedFindr is a developmental research and portfolio prototype only.  
-It must not be used for actual clinical decisions. Always consult a qualified healthcare professional.
+This is **not medical advice**. It is a developmental portfolio prototype only.  
+Always consult a proper healthcare professional for real health concerns.
 
 ---
 
-### Project Structure
+### Project structure
 
 ```
 MedFindr/
-├── app.py                      # Thin UI layer (Patient / Staff view)
-├── config.py                   # Central configuration
+├── app.py
+├── config.py
 ├── scripts/
-│   ├── train_ebm.py            # Train EBM model
-│   └── evaluate.py             # Evaluate urgency engine
+│   ├── train_ebm.py
+│   └── evaluate.py
 ├── utils/
-│   ├── response_engine.py      # Structured response builder
-│   ├── urgency.py              # Rule-based urgency engine
-│   ├── ebm_risk.py             # Explainable risk module
-│   └── drug_lookup.py          # OpenFDA utility
+│   ├── response_engine.py
+│   ├── urgency.py
+│   ├── ebm_risk.py
+│   └── drug_lookup.py
 ├── data/
-│   ├── sample_concerns.json
-│   └── evaluation_set.json
-├── models/                     # Populated after training
+├── models/
+├── DEVELOPERS_NOTES.md
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-### Design Principles
+I kept the architecture simple on purpose so that adding better models, drug interaction checks, or a live demo later stays straightforward.
 
-- Keep the interface simple and stable
-- Keep clinical logic isolated and transparent
-- Prefer glass-box / explainable methods
-- Make future extensions low-friction
-
----
-
-### Version Journey
-
-- **09.0** – Stable foundation
-- **V09.1a** – Real EBM training pipeline
-- **V09 Evolve** – Evaluation + Dual View
-- **V1.0 RD** – Redefined and Rechecked
-- **X1.0** – Defined Version (current)
-
----
-
-**MedFindr X1.0** is the official defined developmental base.  
-Further practical improvements (richer EBM, drug interactions, live demo, etc.) can be built cleanly on top of this structure.
-
-Built as a focused med × pharma portfolio project.
+More details on the development history are in `DEVELOPERS_NOTES.md`.

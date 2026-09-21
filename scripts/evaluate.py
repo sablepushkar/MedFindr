@@ -1,9 +1,6 @@
 """
-Simple evaluation script for MedFindr urgency engine.
-Version: V09 Evolve
-
-Runs the current rule-based urgency assessment against the evaluation set
-and prints a clear agreement report.
+Evaluation script for MedFindr urgency engine.
+Prints a clear agreement report against the labelled evaluation set.
 
 Usage:
     python scripts/evaluate.py
@@ -34,7 +31,7 @@ def main() -> None:
 
     for item in data:
         concern = item.get("concern", "")
-        expected = item.get("expected_urgency", "").lower()
+        expected = item.get("expected_urgency", "").lower().strip()
         result = assess_urgency(concern)
         predicted = result.level.lower()
 
@@ -44,8 +41,8 @@ def main() -> None:
             correct += 1
 
         results.append({
-            "id": item.get("id"),
-            "concern": concern[:60] + ("..." if len(concern) > 60 else ""),
+            "id": item.get("id", ""),
+            "concern": concern[:55] + ("..." if len(concern) > 55 else ""),
             "expected": expected,
             "predicted": predicted,
             "match": match,
@@ -54,19 +51,20 @@ def main() -> None:
     accuracy = (correct / total * 100) if total else 0.0
 
     print("\n=== MedFindr Urgency Evaluation ===")
-    print(f"Total cases     : {total}")
-    print(f"Correct         : {correct}")
-    print(f"Accuracy        : {accuracy:.1f}%")
-    print("\nDetailed results:")
-    print("-" * 80)
+    print(f"Total cases  : {total}")
+    print(f"Correct      : {correct}")
+    print(f"Accuracy     : {accuracy:.1f}%\n")
+
+    print(f"{'Status':<7} {'ID':<12} {'Expected':<10} {'Predicted':<10} Concern")
+    print("-" * 85)
 
     for r in results:
-        status = "✓" if r["match"] else "✗"
-        print(f"{status} [{r['id']}] expected={r['expected']:<8} predicted={r['predicted']:<8} | {r['concern']}")
+        status = "PASS" if r["match"] else "FAIL"
+        print(f"{status:<7} {r['id']:<12} {r['expected']:<10} {r['predicted']:<10} {r['concern']}")
 
-    print("-" * 80)
-    print("Note: This evaluates only the rule-based urgency engine.")
-    print("EBM evaluation can be added once a trained model is in active use.\n")
+    print("-" * 85)
+    print("Note: This currently evaluates the rule-based urgency engine only.")
+    print("EBM performance can be added once the trained model is actively used.\n")
 
 
 if __name__ == "__main__":

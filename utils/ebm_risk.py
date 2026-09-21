@@ -1,10 +1,8 @@
 """
 Explainable Boosting Machine (EBM) Risk Module
-Version: V09.1a
+Version: X1.0+
 
-Supports both:
-- A trained InterpretML EBM model (when available)
-- A high-quality transparent placeholder (safe fallback)
+Loads a trained model when available, otherwise uses a transparent placeholder.
 """
 
 from __future__ import annotations
@@ -42,7 +40,6 @@ class EBMExplanation:
 
 
 def _placeholder_assess(concern: str, urgency_level: str) -> EBMExplanation:
-    """Safe deterministic fallback."""
     if urgency_level == "high":
         return EBMExplanation(
             risk_level="high",
@@ -51,17 +48,17 @@ def _placeholder_assess(concern: str, urgency_level: str) -> EBMExplanation:
             top_factors=["High-urgency symptom patterns present", "Language indicating potential severity"],
             local_contribution={"high_urgency_keywords": 0.58, "severity_language": 0.26},
             model_status="placeholder",
-            note="Using transparent placeholder. Train a real EBM with scripts/train_ebm.py",
+            note="Using transparent placeholder. Run scripts/train_ebm.py to create a real model.",
         )
     if urgency_level == "moderate":
         return EBMExplanation(
             risk_level="moderate",
             risk_score=0.47,
             summary="Moderate risk indicators present. Monitoring and timely review are advised.",
-            top_factors=["Moderate concern patterns matched", "No immediate high-severity red flags detected"],
+            top_factors=["Moderate concern patterns matched", "No immediate high-severity red flags"],
             local_contribution={"moderate_keywords": 0.33, "contextual_signals": 0.14},
             model_status="placeholder",
-            note="Using transparent placeholder. Train a real EBM with scripts/train_ebm.py",
+            note="Using transparent placeholder. Run scripts/train_ebm.py to create a real model.",
         )
     return EBMExplanation(
         risk_level="low",
@@ -70,23 +67,38 @@ def _placeholder_assess(concern: str, urgency_level: str) -> EBMExplanation:
         top_factors=["No strong red-flag or moderate concern patterns detected"],
         local_contribution={"baseline": 0.16},
         model_status="placeholder",
-        note="Using transparent placeholder. Train a real EBM with scripts/train_ebm.py",
+        note="Using transparent placeholder. Run scripts/train_ebm.py to create a real model.",
     )
 
 
 def load_ebm_model(model_path: Path = EBM_MODEL_PATH):
-    """Load a trained EBM model if it exists."""
     try:
         if model_path.exists():
             import joblib
             model = joblib.load(model_path)
-            logger.info("EBM model loaded successfully from %s", model_path)
+            logger.info("EBM model loaded from %s", model_path)
             return model
-        logger.info("No trained model found at %s – using placeholder", model_path)
         return None
     except Exception as exc:
-        logger.warning("Failed to load EBM model: %s", exc)
+        logger.warning("Could not load EBM model: %s", exc)
         return None
+
+
+def extract_features(text: str) -> Dict[str, int]:
+    """Simple but improved feature extraction used by the trained model."""
+    t = (text or "").lower()
+    return {
+        "has_chest_pain": int("chest pain" in t or "chest" in t),
+        "has_breathing": int("breath" in t or "dyspnea" in t or "shortness" in t),
+        "has_fever": int("fever" in t),
+        "has_severe": int("severe" in t or "worst" in t or "intense" in t),
+        "has_neuro": int("weakness" in t or "stroke" in t or "one side" in t or "numb" in t),
+        "has_bleeding": int("bleed" in t or "blood" in t),
+        "has_vomit": int("vomit" in t or "vomiting" in t),
+        "has_dizziness": int("dizzy" in t or "dizziness" in t or "vertigo" in t),
+        "duration_days": 3,  # default when not specified
+        "text_length": min(len(t.split()), 50),
+    }
 
 
 def assess_risk_ebm(
@@ -94,60 +106,32 @@ def assess_risk_ebm(
     urgency_level: str = "low",
     model=None,
 ) -> EBMExplanation:
-    """
-    Main entry point.
-    Tries to use a real trained model; falls back to placeholder.
-    """
     if model is None:
         model = load_ebm_model()
 
     if model is not None:
         try:
-            # Very simple feature extraction for the first real model
-            # (This will be improved in later versions)
-            text = (concern or "").lower()
-            features = {
-                "has_chest_pain": int("chest pain" in text or "chest" in text),
-                "has_breathing": int("breath" in text or "dyspnea" in text),
-                "has_fever": int("fever" in text),
-                "has_severe": int("severe" in text or "worst" in text),
-                "has_neuro": int("weakness" in text or "stroke" in text or "one side" in text),
-                "has_bleeding": int("bleed" in text or "blood" in text),
-                "text_length": min(len(text.split()), 50),
-            }
-
             import pandas as pd
+            features = extract_features(concern)
             X = pd.DataFrame([features])
 
-            # Predict
             pred = model.predict(X)[0]
             proba = model.predict_proba(X)[0]
 
-            # Map prediction to risk level
             label_map = {0: "low", 1: "moderate", 2: "high"}
             risk_level = label_map.get(int(pred), "low")
             risk_score = float(max(proba))
 
-            # Try to get local explanation if the model supports it
-            top_factors = []
-            local_contrib = {}
-            try:
-                explanation = model.explain_local(X)
-                # Basic extraction – will be refined later
-                top_factors = ["Model-based factors (see local explanation)"]
-            except Exception:
-                top_factors = ["Trained EBM prediction"]
-
             return EBMExplanation(
                 risk_level=risk_level,
                 risk_score=risk_score,
-                summary=f"EBM model prediction: {risk_level} risk.",
-                top_factors=top_factors,
-                local_contribution=local_contrib,
+                summary=f"EBM model assessment: {risk_level} risk.",
+                top_factors=["Prediction from trained Explainable Boosting Machine"],
+                local_contribution={},
                 model_status="loaded",
-                note="Prediction from trained Explainable Boosting Machine.",
+                note="Result from trained EBM model.",
             )
         except Exception as exc:
-            logger.warning("Real model prediction failed: %s – falling back to placeholder", exp)
+            logger.warning("Model prediction failed (%s). Falling back to placeholder.", exc)
 
     return _placeholder_assess(concern, urgency_level)
