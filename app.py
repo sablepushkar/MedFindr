@@ -1,8 +1,9 @@
 """
 MedFindr - Main application entry point.
-Version: 07.2
+Version: 07.3 major
 
-Interface remains minimal. Drug lookup now returns richer structured data.
+Urgency logic is now fully isolated in utils/urgency.py.
+Interface only renders the structured result.
 """
 
 from __future__ import annotations
@@ -21,6 +22,7 @@ from config import (
     SAMPLE_CONCERNS_PATH,
 )
 from utils.drug_lookup import search_drug
+from utils.urgency import assess_urgency
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -37,7 +39,6 @@ def load_sample_concerns() -> list[dict[str, Any]]:
 
 
 def render_drug_result(result: dict[str, Any]) -> None:
-    """Render drug lookup result in a clean, readable way."""
     status = result.get("status")
 
     if status == "error":
@@ -48,7 +49,6 @@ def render_drug_result(result: dict[str, Any]) -> None:
         st.warning(result.get("message", "No information found"))
         return
 
-    # Success case
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(f"**Brand name:** {result.get('brand_name', 'N/A')}")
@@ -74,6 +74,25 @@ def render_drug_result(result: dict[str, Any]) -> None:
     if result.get("dosage_snippet"):
         st.markdown("**Dosage & Administration (excerpt)**")
         st.write(result["dosage_snippet"])
+
+
+def render_urgency(result) -> None:
+    """Render urgency result with clear visual hierarchy."""
+    level = result.level
+
+    if level == "high":
+        st.error(f"**Urgency level: HIGH**")
+    elif level == "moderate":
+        st.warning(f"**Urgency level: MODERATE**")
+    else:
+        st.info(f"**Urgency level: LOW**")
+
+    st.markdown(result.recommendation)
+
+    if result.reasons:
+        st.markdown("**Reasons detected:**")
+        for reason in result.reasons:
+            st.markdown(f"- {reason}")
 
 
 def main() -> None:
@@ -110,28 +129,16 @@ def main() -> None:
 
         st.subheader("Structured Response")
 
+        # 1. Understanding
         st.markdown("### 1. Understanding the Concern")
         st.write(concern.strip())
 
-        st.markdown("### 2. Urgency Check (basic)")
-        lower = concern.lower()
-        high_keywords = [
-            "chest pain", "difficulty breathing", "severe", "unconscious",
-            "bleeding heavily", "stroke", "heart attack", "one side",
-            "sudden weakness", "severe headache with fever"
-        ]
-        moderate_keywords = [
-            "fever", "pain", "vomit", "dizziness", "bleeding",
-            "swelling", "burning sensation", "blood in"
-        ]
+        # 2. Urgency (new clean engine)
+        st.markdown("### 2. Urgency Assessment")
+        urgency_result = assess_urgency(concern)
+        render_urgency(urgency_result)
 
-        if any(k in lower for k in high_keywords):
-            st.error("Possible high urgency signals detected. Seek emergency care immediately if symptoms are serious.")
-        elif any(k in lower for k in moderate_keywords):
-            st.warning("Moderate concern indicators present. Monitor closely and consider professional medical review if symptoms worsen or persist.")
-        else:
-            st.info("Based on the description this appears low-to-moderate. Continue to monitor for any change.")
-
+        # 3. Next steps
         st.markdown("### 3. Possible Next Steps / Remedies (general)")
         st.markdown(
             """
@@ -142,17 +149,18 @@ def main() -> None:
             """
         )
 
+        # 4. Drug info
         if drug_name and drug_name.strip():
             st.markdown("### 4. Drug Information")
             with st.spinner("Looking up drug information..."):
                 result = search_drug(drug_name.strip())
             render_drug_result(result)
 
+        # 5. Notes
         st.markdown("### 5. Notes")
         st.write(
-            "This is a developmental structured breakdown. "
-            "Later versions will include improved urgency logic, explainable risk models, "
-            "and richer drug-safety information."
+            "Urgency assessment is currently rule-based and fully transparent. "
+            "Later versions will add explainable machine learning models while keeping the same clear output format."
         )
 
     with st.sidebar:

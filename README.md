@@ -1,20 +1,19 @@
 # MedFindr
 
-**Version: 07.2**  
-**Status:** Developmental / Drug module strengthened
+**Version: 07.3 major**  
+**Status:** Developmental / Urgency engine added
 
 MedFindr is a structured health-concern assistant prototype.  
 It takes a free-text description of a health issue and returns a clear, sectioned response that can be useful for patients or pharmacy/clinic staff.
 
-Current focus remains on building a clean, reliable foundation before adding heavier clinical intelligence.
-
 ---
 
-### Current Capabilities (07.2)
+### Current Capabilities (07.3 major)
 
 - Simple text input for health concern
 - Structured output sections
-- Improved OpenFDA drug lookup (better field extraction & safety snippets)
+- Improved OpenFDA drug lookup
+- Transparent rule-based urgency / red-flag engine
 - Curated sample concerns + evaluation set
 - Strong safety disclaimers
 
@@ -40,7 +39,8 @@ MedFindr/
 ├── app.py
 ├── config.py
 ├── utils/
-│   └── drug_lookup.py          # Strengthened in 07.2
+│   ├── drug_lookup.py
+│   └── urgency.py              # New in 07.3 major
 ├── data/
 │   ├── sample_concerns.json
 │   └── evaluation_set.json
@@ -56,6 +56,7 @@ MedFindr/
 - **V07.1** – Foundation hardening
 - **07.1 dev** – Sample data + evaluation set
 - **07.2** – Drug module upgrade (Phase 1)
+- **07.3 major** – Basic Red-Flag & Urgency Engine
 
 ---
 

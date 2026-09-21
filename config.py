@@ -13,7 +13,7 @@ EVALUATION_SET_PATH = DATA_DIR / "evaluation_set.json"
 
 # App metadata
 APP_NAME = "MedFindr"
-APP_VERSION = "07.2"
+APP_VERSION = "07.3 major"
 APP_CAPTION = "Developmental prototype · Not medical advice"
 
 # Safety
