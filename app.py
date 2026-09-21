@@ -1,6 +1,6 @@
 """
 MedFindr - Main application entry point
-Version: V1.0 RD
+Version: X1.0 (Defined Version)
 """
 
 from __future__ import annotations

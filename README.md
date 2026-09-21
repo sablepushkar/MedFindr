@@ -1,34 +1,38 @@
 # MedFindr
 
-**Version: V1.0 RD** (Redefined and Rechecked)  
-**Status:** Developmental – Quality & consistency pass completed
+**Version: X1.0 (Defined Version)**  
+**Status:** Solid developmental base – Defined milestone
 
-MedFindr is a structured and explainable health-concern assistant built as a focused med × pharma portfolio project.  
-It converts a free-text health concern into a clear, sectioned response with transparent urgency assessment and an explainable risk layer.
+MedFindr is a structured and explainable health-concern assistant created as a focused med × pharma portfolio project.  
+It takes a free-text health concern and returns a clear, sectioned, transparent response suitable for patients or pharmacy/clinic staff.
+
+This X1.0 release marks a defined, stable foundation. The architecture is clean, extensible, and ready for further practical development.
 
 ---
 
-### Current Capabilities (V1.0 RD)
+### Core Capabilities (X1.0)
 
-- Clean Structured Response Engine
-- Transparent rule-based urgency / red-flag assessment
+- Structured Response Engine
+- Transparent rule-based urgency & red-flag assessment
 - Explainable risk layer (EBM interface + training pipeline)
 - Patient / Staff dual view
 - Evaluation script against labelled set
-- OpenFDA drug lookup with safety fields
-- Strong separation of concerns and consistent structure
+- OpenFDA drug lookup with safety-relevant fields
+- Clean separation of concerns
 
-### How to run
+### Quick Start
 
 ```bash
+git clone https://github.com/sablepushkar/MedFindr.git
+cd MedFindr
 pip install -r requirements.txt
 streamlit run app.py
 ```
 
-### Optional but recommended
+### Recommended Setup
 
 ```bash
-# Train the EBM model
+# Train the Explainable Boosting Machine (optional but recommended)
 python scripts/train_ebm.py
 
 # Run evaluation
@@ -50,7 +54,7 @@ MedFindr/
 ├── app.py                      # Thin UI layer (Patient / Staff view)
 ├── config.py                   # Central configuration
 ├── scripts/
-│   ├── train_ebm.py            # Train Explainable Boosting Machine
+│   ├── train_ebm.py            # Train EBM model
 │   └── evaluate.py             # Evaluate urgency engine
 ├── utils/
 │   ├── response_engine.py      # Structured response builder
@@ -60,22 +64,33 @@ MedFindr/
 ├── data/
 │   ├── sample_concerns.json
 │   └── evaluation_set.json
-├── models/                     # Created after training
+├── models/                     # Populated after training
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-### Version Journey (summary)
+### Design Principles
+
+- Keep the interface simple and stable
+- Keep clinical logic isolated and transparent
+- Prefer glass-box / explainable methods
+- Make future extensions low-friction
+
+---
+
+### Version Journey
 
 - **09.0** – Stable foundation
 - **V09.1a** – Real EBM training pipeline
 - **V09 Evolve** – Evaluation + Dual View
-- **V1.0 RD** – Redefined and Rechecked (current)
-
-Next planned milestone: **MedFindr X1.0** (Defined Version)
+- **V1.0 RD** – Redefined and Rechecked
+- **X1.0** – Defined Version (current)
 
 ---
 
-Built as a focused med × pharma learning and portfolio project.
+**MedFindr X1.0** is the official defined developmental base.  
+Further practical improvements (richer EBM, drug interactions, live demo, etc.) can be built cleanly on top of this structure.
+
+Built as a focused med × pharma portfolio project.
