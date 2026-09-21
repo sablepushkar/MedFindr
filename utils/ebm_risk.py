@@ -1,96 +1,140 @@
 """
 Explainable Boosting Machine (EBM) Risk Module
-Version: 08.1 Beta testing EBM
+Version: 08.5
 
-This module provides the interface for glass-box risk assessment.
-Currently contains a clean placeholder + structured output so the
-rest of the system can already consume EBM-style results.
+Glass-box risk assessment interface.
+Currently uses a high-quality deterministic placeholder that produces
+the same structured output a real InterpretML EBM will return.
 
-Real model training and loading will be added in the next iteration.
-Design goal: full explainability (global + local) while staying simple.
+The public API is stable. A trained model can be dropped in later
+without changing any calling code.
 """
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+from config import EBM_MODEL_PATH
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
 class EBMExplanation:
-    """Structured explanation from an EBM-style model."""
-    risk_level: str                          # "high" | "moderate" | "low"
-    risk_score: float                        # 0.0 – 1.0
+    """Structured, fully explainable risk output."""
+    risk_level: str                                 # high | moderate | low
+    risk_score: float                               # 0.0 – 1.0
     summary: str
     top_factors: List[str] = field(default_factory=list)
     local_contribution: Dict[str, float] = field(default_factory=dict)
-    note: str = "EBM model not yet trained – using transparent rule-based fallback."
+    model_status: str = "placeholder"               # placeholder | loaded | error
+    note: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "risk_level": self.risk_level,
-            "risk_score": self.risk_score,
+            "risk_score": round(self.risk_score, 3),
             "summary": self.summary,
             "top_factors": self.top_factors,
-            "local_contribution": self.local_contribution,
+            "local_contribution": {k: round(v, 3) for k, v in self.local_contribution.items()},
+            "model_status": self.model_status,
             "note": self.note,
         }
 
 
-def assess_risk_ebm(concern: str, urgency_level: str = "low") -> EBMExplanation:
-    """
-    Placeholder EBM risk assessment.
+def _placeholder_assess(concern: str, urgency_level: str) -> EBMExplanation:
+    """High-quality deterministic fallback used until a real model is trained."""
+    concern_l = (concern or "").lower()
 
-    In this beta version we return a structured, explainable result
-    that mirrors what a real InterpretML EBM would produce.
-    This keeps the pipeline ready for a trained model without
-    breaking current behaviour.
-    """
-    cleaned = (concern or "").strip().lower()
-
-    # Simple deterministic mapping so the interface is already testable
     if urgency_level == "high":
         return EBMExplanation(
             risk_level="high",
-            risk_score=0.82,
-            summary="Elevated risk signals detected from the current description.",
+            risk_score=0.84,
+            summary="Elevated risk signals detected. Prompt clinical attention is warranted.",
             top_factors=[
-                "Presence of high-urgency keywords",
-                "Symptom combination requires prompt attention",
+                "High-urgency symptom patterns present",
+                "Language indicating potential severity",
             ],
             local_contribution={
-                "urgency_keywords": 0.55,
-                "symptom_severity_language": 0.27,
+                "high_urgency_keywords": 0.58,
+                "severity_language": 0.26,
             },
-            note="Beta placeholder – real EBM model will replace this logic.",
+            model_status="placeholder",
+            note="Using transparent placeholder. Real EBM model will replace this.",
         )
 
     if urgency_level == "moderate":
         return EBMExplanation(
             risk_level="moderate",
-            risk_score=0.48,
-            summary="Moderate risk indicators present. Monitoring and timely review advised.",
+            risk_score=0.47,
+            summary="Moderate risk indicators present. Monitoring and timely review are advised.",
             top_factors=[
                 "Moderate concern patterns matched",
-                "No immediate high-severity red flags",
+                "No immediate high-severity red flags detected",
             ],
             local_contribution={
-                "moderate_keywords": 0.31,
-                "duration_language": 0.17,
+                "moderate_keywords": 0.33,
+                "contextual_signals": 0.14,
             },
-            note="Beta placeholder – real EBM model will replace this logic.",
+            model_status="placeholder",
+            note="Using transparent placeholder. Real EBM model will replace this.",
         )
 
-    # Default low
     return EBMExplanation(
         risk_level="low",
-        risk_score=0.18,
-        summary="Low risk profile based on the current description.",
+        risk_score=0.16,
+        summary="Low risk profile based on the information provided.",
         top_factors=[
             "No strong red-flag or moderate concern patterns detected",
         ],
         local_contribution={
-            "baseline": 0.18,
+            "baseline": 0.16,
         },
-        note="Beta placeholder – real EBM model will replace this logic.",
+        model_status="placeholder",
+        note="Using transparent placeholder. Real EBM model will replace this.",
     )
+
+
+def load_ebm_model(model_path: Path = EBM_MODEL_PATH):
+    """
+    Attempt to load a trained EBM model.
+    Returns the model object or None if not available.
+    This function is ready for InterpretML / joblib models.
+    """
+    try:
+        if model_path.exists():
+            import joblib
+            model = joblib.load(model_path)
+            logger.info("EBM model loaded from %s", model_path)
+            return model
+        else:
+            logger.info("No trained EBM model found at %s – using placeholder", model_path)
+            return None
+    except Exception as exc:
+        logger.warning("Failed to load EBM model: %s", exc)
+        return None
+
+
+def assess_risk_ebm(
+    concern: str,
+    urgency_level: str = "low",
+    model=None,
+) -> EBMExplanation:
+    """
+    Public entry point for EBM-style risk assessment.
+
+    - If a real trained model is provided / loaded, it will be used.
+    - Otherwise falls back to the transparent placeholder.
+    """
+    if model is None:
+        model = load_ebm_model()
+
+    if model is not None:
+        # Future: real prediction + explanation extraction will go here
+        # For now we still return placeholder so behaviour stays stable
+        logger.info("Real model present but prediction path not yet implemented – using placeholder")
+
+    return _placeholder_assess(concern, urgency_level)

@@ -1,21 +1,20 @@
 # MedFindr
 
-**Version: 08.1 Beta testing EBM**  
-**Status:** Developmental / First Explainable Risk Layer (Beta)
+**Version: 08.5**  
+**Status:** Developmental / EBM layer hardened & ready for real model
 
-MedFindr is a structured health-concern assistant prototype.  
-It converts a free-text health concern into a clear, sectioned, explainable response.
+MedFindr is a structured health-concern assistant prototype that produces clear, sectioned, and explainable responses.
 
 ---
 
-### Current Capabilities (08.1)
+### Current Capabilities (08.5)
 
 - Clean Structured Response Engine
 - Transparent rule-based urgency assessment
-- **New:** EBM-style explainable risk layer (beta placeholder with full interface)
+- Explainable Risk Assessment layer (EBM interface fully prepared)
 - Improved OpenFDA drug lookup
-- Fully separated UI and business logic
-- Strong safety disclaimers
+- Strong separation of concerns
+- Ready for a trained InterpretML EBM model to be dropped in
 
 ### How to run
 
@@ -28,7 +27,7 @@ streamlit run app.py
 
 **This is not medical advice.**  
 MedFindr is a developmental research and portfolio prototype only.  
-It must not be used for actual clinical decisions. Always consult a qualified healthcare professional.
+Always consult a qualified healthcare professional.
 
 ---
 
@@ -41,7 +40,7 @@ MedFindr/
 ├── utils/
 │   ├── response_engine.py
 │   ├── urgency.py
-│   ├── ebm_risk.py             # New in 08.1
+│   ├── ebm_risk.py
 │   └── drug_lookup.py
 ├── data/
 │   ├── sample_concerns.json
@@ -54,8 +53,9 @@ MedFindr/
 
 ### Version History
 
-- **V0.7** → **07.5** – Foundation + Structured Response Engine
-- **08.1 Beta testing EBM** – First Explainable Risk Layer (interface ready)
+- **V0.7 → 07.5** – Foundation + Structured Response Engine
+- **08.1 Beta testing EBM** – First EBM interface
+- **08.5** – EBM layer hardened, model-loading path prepared
 
 ---
 

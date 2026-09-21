@@ -1,8 +1,6 @@
 """
 MedFindr - Main application entry point
-Version: 08.1 Beta testing EBM
-
-Pure rendering layer.
+Version: 08.5
 """
 
 from __future__ import annotations
@@ -13,13 +11,7 @@ from typing import Any
 
 import streamlit as st
 
-from config import (
-    APP_CAPTION,
-    APP_NAME,
-    APP_VERSION,
-    DISCLAIMER,
-    SAMPLE_CONCERNS_PATH,
-)
+from config import APP_CAPTION, APP_NAME, APP_VERSION, DISCLAIMER, SAMPLE_CONCERNS_PATH
 from utils.response_engine import build_response
 
 logging.basicConfig(level=logging.INFO)
@@ -38,7 +30,6 @@ def load_sample_concerns() -> list[dict[str, Any]]:
 
 def render_drug_result(result: dict[str, Any]) -> None:
     status = result.get("status")
-
     if status == "error":
         st.error(result.get("message", "Unknown error"))
         return
@@ -95,11 +86,7 @@ def render_structured_response(response) -> None:
 
 
 def main() -> None:
-    st.set_page_config(
-        page_title=f"{APP_NAME} {APP_VERSION}",
-        page_icon="🩺",
-        layout="centered",
-    )
+    st.set_page_config(page_title=f"{APP_NAME} {APP_VERSION}", page_icon="🩺", layout="centered")
 
     st.title(APP_NAME)
     st.caption(f"{APP_VERSION} · {APP_CAPTION}")
@@ -107,16 +94,8 @@ def main() -> None:
 
     samples = load_sample_concerns()
 
-    concern = st.text_area(
-        "Describe the health concern",
-        placeholder="Example: mild headache and body ache for 2 days",
-        height=110,
-    )
-
-    drug_name = st.text_input(
-        "Optional: medicine name to look up",
-        placeholder="e.g. paracetamol / ibuprofen / amoxicillin",
-    )
+    concern = st.text_area("Describe the health concern", placeholder="Example: mild headache and body ache for 2 days", height=110)
+    drug_name = st.text_input("Optional: medicine name to look up", placeholder="e.g. paracetamol / ibuprofen / amoxicillin")
 
     if st.button("Generate structured view", type="primary"):
         if not concern or not concern.strip():
