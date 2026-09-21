@@ -1,18 +1,18 @@
 # MedFindr
 
 **Version: 07.5**  
-**Status:** Developmental / Structured Response Engine active
+**Status:** Developmental / Structured Response Engine (refined)
 
 MedFindr is a structured health-concern assistant prototype.  
-It takes a free-text description of a health issue and returns a clear, sectioned response useful for patients or pharmacy/clinic staff.
+It converts a free-text health concern into a clear, sectioned response that can be useful for patients or pharmacy/clinic staff.
 
 ---
 
 ### Current Capabilities (07.5)
 
-- Clean structured response engine
-- Transparent rule-based urgency assessment
-- Improved OpenFDA drug lookup with safety fields
+- Clean, typed Structured Response Engine
+- Transparent rule-based urgency / red-flag assessment
+- Improved OpenFDA drug lookup with safety-relevant fields
 - Fully separated UI and business logic
 - Curated sample concerns + evaluation set
 - Strong safety disclaimers
@@ -39,9 +39,9 @@ MedFindr/
 ├── app.py                      # Thin rendering layer only
 ├── config.py
 ├── utils/
-│   ├── response_engine.py      # Core structured response builder (new in 07.5)
-│   ├── urgency.py
-│   └── drug_lookup.py
+│   ├── response_engine.py      # Core structured response builder
+│   ├── urgency.py              # Transparent urgency engine
+│   └── drug_lookup.py          # OpenFDA utility
 ├── data/
 │   ├── sample_concerns.json
 │   └── evaluation_set.json
@@ -58,7 +58,7 @@ MedFindr/
 - **07.1 dev** – Sample data + evaluation set
 - **07.2** – Drug module upgrade (Phase 1)
 - **07.3 major** – Basic Red-Flag & Urgency Engine
-- **07.5** – Structured Response Engine
+- **07.5** – Structured Response Engine (+ refinement pass)
 
 ---
 

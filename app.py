@@ -1,9 +1,9 @@
 """
-MedFindr - Main application entry point.
-Version: 07.5
+MedFindr - Main application entry point
+Version: 07.5 (refined)
 
-The UI is now a pure rendering layer.
-All response construction is handled by the Structured Response Engine.
+Pure rendering layer. All business logic lives in utils/response_engine.py
+and supporting modules. This keeps the interface stable and easy to evolve.
 """
 
 from __future__ import annotations
@@ -38,6 +38,7 @@ def load_sample_concerns() -> list[dict[str, Any]]:
 
 
 def render_drug_result(result: dict[str, Any]) -> None:
+    """Render drug lookup result with clear visual hierarchy."""
     status = result.get("status")
 
     if status == "error":
@@ -76,8 +77,7 @@ def render_drug_result(result: dict[str, Any]) -> None:
 
 
 def render_structured_response(response) -> None:
-    """Render a complete StructuredResponse cleanly."""
-
+    """Render a complete StructuredResponse."""
     for section in response.sections:
         st.markdown(f"### {section.title}")
 
@@ -90,16 +90,13 @@ def render_structured_response(response) -> None:
         else:
             st.write(section.content)
 
-        if section.items:
-            for item in section.items:
-                st.markdown(f"- {item}")
+        for item in section.items:
+            st.markdown(f"- {item}")
 
-    # Drug section (only if present)
     if response.drug_result:
         st.markdown("### 4. Drug Information")
         render_drug_result(response.drug_result)
 
-    # Notes
     st.markdown("### 5. Notes")
     st.write(response.notes)
 
@@ -113,7 +110,6 @@ def main() -> None:
 
     st.title(APP_NAME)
     st.caption(f"{APP_VERSION} · {APP_CAPTION}")
-
     st.warning(DISCLAIMER)
 
     samples = load_sample_concerns()
@@ -129,9 +125,7 @@ def main() -> None:
         placeholder="e.g. paracetamol / ibuprofen / amoxicillin",
     )
 
-    generate = st.button("Generate structured view", type="primary")
-
-    if generate:
+    if st.button("Generate structured view", type="primary"):
         if not concern or not concern.strip():
             st.error("Please enter a health concern first.")
             return
@@ -147,12 +141,10 @@ def main() -> None:
         st.caption("Click to inspect")
         if samples:
             for i, item in enumerate(samples[:12]):
-                concern_text = item.get("concern", "")
-                if st.button(
-                    concern_text[:55] + ("..." if len(concern_text) > 55 else ""),
-                    key=f"s_{i}",
-                ):
-                    st.session_state["last_sample"] = concern_text
+                text = item.get("concern", "")
+                label = text[:55] + ("..." if len(text) > 55 else "")
+                if st.button(label, key=f"sample_{i}"):
+                    st.session_state["last_sample"] = text
         else:
             st.write("No sample data loaded.")
 

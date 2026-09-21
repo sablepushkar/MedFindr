@@ -1,10 +1,10 @@
 """
 Structured Response Engine
-Version: 07.5
+Version: 07.5 (refined)
 
-Responsible for generating a complete, consistent, typed response object.
-All section logic lives here so the UI remains thin and future features
-(EBM, tools, dual-view, etc.) can be added cleanly.
+Single source of truth for generating a complete, consistent,
+typed response object. UI only renders the result.
+Designed to stay stable when EBM, tools, or dual-view are added later.
 """
 
 from __future__ import annotations
@@ -12,27 +12,29 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from utils.urgency import UrgencyResult, assess_urgency
 from utils.drug_lookup import search_drug
+from utils.urgency import UrgencyResult, assess_urgency
 
 
 @dataclass
 class Section:
+    """One display section in the final response."""
     title: str
     content: str
-    level: Optional[str] = None          # used for urgency visual level
+    level: Optional[str] = None          # "high" | "moderate" | "low" | None
     items: List[str] = field(default_factory=list)
 
 
 @dataclass
 class StructuredResponse:
+    """Complete structured output produced by the engine."""
     concern: str
     urgency: UrgencyResult
     sections: List[Section] = field(default_factory=list)
     drug_result: Optional[Dict[str, Any]] = None
     notes: str = ""
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "concern": self.concern,
             "urgency": self.urgency.to_dict(),
@@ -55,83 +57,81 @@ def build_response(
     drug_name: Optional[str] = None,
 ) -> StructuredResponse:
     """
-    Main entry point for the response engine.
-    Produces a complete StructuredResponse from raw user input.
+    Build a complete StructuredResponse from raw user input.
+
+    This is the only public entry point the UI should call.
     """
-    cleaned_concern = (concern or "").strip()
+    cleaned = (concern or "").strip()
 
-    # 1. Urgency assessment
-    urgency = assess_urgency(cleaned_concern)
+    # --- Urgency ---
+    urgency: UrgencyResult = assess_urgency(cleaned)
 
-    # 2. Build core sections
     sections: List[Section] = []
 
-    # Section 1 – Understanding
+    # 1. Understanding
     sections.append(
         Section(
             title="1. Understanding the Concern",
-            content=cleaned_concern if cleaned_concern else "No concern provided.",
+            content=cleaned if cleaned else "No concern text provided.",
         )
     )
 
-    # Section 2 – Urgency (detailed content lives in urgency object)
+    # 2. Urgency Assessment
     sections.append(
         Section(
             title="2. Urgency Assessment",
             content=urgency.recommendation,
             level=urgency.level,
-            items=urgency.reasons,
+            items=list(urgency.reasons),
         )
     )
 
-    # Section 3 – Next steps (general, safe defaults)
-    next_steps_items = [
+    # 3. Next Steps (tone adapts lightly to urgency)
+    if urgency.level == "high":
+        next_content = (
+            "High urgency signals were detected. "
+            "Urgent medical evaluation should be prioritised."
+        )
+    elif urgency.level == "moderate":
+        next_content = (
+            "Moderate concern indicators are present. "
+            "Close monitoring and timely medical review are recommended."
+        )
+    else:
+        next_content = (
+            "No strong red-flag patterns detected on the current description. "
+            "General self-care measures may be appropriate while continuing to monitor."
+        )
+
+    next_items = [
         "Rest and maintain good hydration",
         "Monitor symptoms over the next 24–48 hours",
         "For mild symptoms, consider seeking pharmacy advice on suitable over-the-counter options",
         "Seek medical attention if symptoms persist, worsen, or new concerning signs appear",
     ]
 
-    # Adjust tone slightly based on urgency
-    if urgency.level == "high":
-        next_steps_content = (
-            "High urgency signals were detected. "
-            "Priority should be given to urgent medical evaluation."
-        )
-    elif urgency.level == "moderate":
-        next_steps_content = (
-            "Moderate concern indicators are present. "
-            "Close monitoring and timely medical review are recommended."
-        )
-    else:
-        next_steps_content = (
-            "No strong red-flag patterns detected on the current description. "
-            "General self-care measures may be appropriate while monitoring."
-        )
-
     sections.append(
         Section(
             title="3. Possible Next Steps / Remedies (general)",
-            content=next_steps_content,
-            items=next_steps_items,
+            content=next_content,
+            items=next_items,
         )
     )
 
-    # 3. Optional drug lookup
-    drug_result = None
+    # Optional drug lookup
+    drug_result: Optional[Dict[str, Any]] = None
     if drug_name and drug_name.strip():
         drug_result = search_drug(drug_name.strip())
 
-    # 4. Notes
     notes = (
-        "This structured response was generated by the MedFindr response engine (v07.5). "
+        "Structured response generated by MedFindr response engine (v07.5). "
         "Urgency assessment is currently rule-based and fully transparent. "
-        "Future versions will incorporate explainable machine learning models "
-        "while preserving the same clear output structure."
+        "Future versions will add explainable machine-learning models "
+        "while preserving this clear output structure."
     )
 
     return StructuredResponse(
-        concern=cleaned_concern,
+        concern=cleaned,
         urgency=urgency,
         sections=sections,
         drug_result=drug_result,
