@@ -1,20 +1,21 @@
 # MedFindr
 
-**Version: V09.1a**  
-**Status:** Developmental – Real EBM training pipeline added
+**Version: V09 Evolve**  
+**Status:** Developmental – Evaluation + Dual View added
 
-MedFindr is a structured, explainable health-concern assistant (med × pharma portfolio project).
+MedFindr is a structured, explainable health-concern assistant built as a focused med × pharma portfolio project.
 
 ---
 
-### Current Capabilities (V09.1a)
+### Current Capabilities (V09 Evolve)
 
 - Structured response engine
 - Transparent rule-based urgency assessment
-- **New:** Real Explainable Boosting Machine training pipeline
-- Automatic fallback to transparent placeholder if no model is trained yet
+- Explainable risk layer (EBM-ready + training pipeline)
+- **New:** Simple Patient / Staff dual view
+- **New:** Evaluation script against the labelled set
 - OpenFDA drug lookup
-- Clean architecture
+- Clean, extensible architecture
 
 ### How to run
 
@@ -23,13 +24,17 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-### Train the EBM model (recommended)
+### Train the EBM (optional but recommended)
 
 ```bash
 python scripts/train_ebm.py
 ```
 
-This creates `models/ebm_urgency_model.pkl`. The app will automatically use it on next run.
+### Run evaluation
+
+```bash
+python scripts/evaluate.py
+```
 
 ### Important Notice
 
@@ -45,14 +50,15 @@ MedFindr/
 ├── app.py
 ├── config.py
 ├── scripts/
-│   └── train_ebm.py          # Train the EBM model
+│   ├── train_ebm.py
+│   └── evaluate.py
 ├── utils/
 │   ├── response_engine.py
 │   ├── urgency.py
 │   ├── ebm_risk.py
 │   └── drug_lookup.py
 ├── data/
-├── models/                   # Created after training
+├── models/
 ├── requirements.txt
 └── README.md
 ```
@@ -62,7 +68,8 @@ MedFindr/
 ### Version History
 
 - **09.0** – Stable foundation
-- **V09.1a** – Real EBM preparation & training setup
+- **V09.1a** – Real EBM training pipeline
+- **V09 Evolve** – Evaluation script + Dual View
 
 ---
 

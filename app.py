@@ -1,6 +1,8 @@
 """
 MedFindr - Main application entry point
-Version: 09.0
+Version: V09 Evolve
+
+Includes simple Patient / Staff dual view.
 """
 
 from __future__ import annotations
@@ -24,7 +26,7 @@ def load_sample_concerns() -> list[dict[str, Any]]:
             data = json.load(f)
         return data if isinstance(data, list) else []
     except Exception as exc:
-        logger.warning("Could not load sample concerns: %s", exc)
+        logger.warning("Could not load sample concerns: %s", exp)
         return []
 
 
@@ -61,7 +63,9 @@ def render_drug_result(result: dict[str, Any]) -> None:
         st.write(result["dosage_snippet"])
 
 
-def render_structured_response(response) -> None:
+def render_structured_response(response, view_mode: str = "patient") -> None:
+    """Render response with slight differences for Patient vs Staff view."""
+
     for section in response.sections:
         st.markdown(f"### {section.title}")
 
@@ -81,6 +85,11 @@ def render_structured_response(response) -> None:
         st.markdown("### 5. Drug Information")
         render_drug_result(response.drug_result)
 
+    # Staff view shows a bit more technical detail
+    if view_mode == "staff" and response.ebm:
+        st.markdown("### Technical Detail (Staff)")
+        st.json(response.ebm.to_dict())
+
     st.markdown("### Notes")
     st.write(response.notes)
 
@@ -91,6 +100,14 @@ def main() -> None:
     st.title(APP_NAME)
     st.caption(f"{APP_VERSION} · {APP_CAPTION}")
     st.warning(DISCLAIMER)
+
+    # Dual view selector
+    view_mode = st.radio(
+        "View mode",
+        options=["Patient", "Staff"],
+        horizontal=True,
+        help="Staff view shows additional technical detail when available.",
+    ).lower()
 
     samples = load_sample_concerns()
 
@@ -114,7 +131,7 @@ def main() -> None:
             response = build_response(concern=concern, drug_name=drug_name)
 
         st.subheader("Structured Response")
-        render_structured_response(response)
+        render_structured_response(response, view_mode=view_mode)
 
     with st.sidebar:
         st.header("Sample Concerns")
