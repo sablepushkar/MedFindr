@@ -1,6 +1,6 @@
 """
 MedFindr - Main application entry point.
-Version: V07.1
+Version: 07.1 dev
 
 Interface is intentionally kept minimal and stable.
 Business logic will be moved out in later steps.
@@ -83,8 +83,8 @@ def main() -> None:
         # Section 2 - basic urgency (will be replaced in later step)
         st.markdown("### 2. Urgency Check (basic)")
         lower = concern.lower()
-        high_keywords = ["chest pain", "difficulty breathing", "severe", "unconscious", "bleeding heavily", "stroke", "heart attack"]
-        moderate_keywords = ["fever", "pain", "vomit", "dizziness", "bleeding", "swelling"]
+        high_keywords = ["chest pain", "difficulty breathing", "severe", "unconscious", "bleeding heavily", "stroke", "heart attack", "one side", "sudden weakness"]
+        moderate_keywords = ["fever", "pain", "vomit", "dizziness", "bleeding", "swelling", "burning sensation", "blood in"]
 
         if any(k in lower for k in high_keywords):
             st.error("Possible high urgency signals detected. Seek emergency care immediately if symptoms are serious.")

@@ -9,10 +9,11 @@ from pathlib import Path
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
 SAMPLE_CONCERNS_PATH = DATA_DIR / "sample_concerns.json"
+EVALUATION_SET_PATH = DATA_DIR / "evaluation_set.json"
 
 # App metadata
 APP_NAME = "MedFindr"
-APP_VERSION = "V07.1"
+APP_VERSION = "07.1 dev"
 APP_CAPTION = "Developmental prototype · Not medical advice"
 
 # Safety

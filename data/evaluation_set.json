@@ -1,0 +1,92 @@
+[
+  {
+    "id": "eval_001",
+    "concern": "sudden severe chest pain with sweating",
+    "expected_urgency": "high",
+    "notes": "Classic red-flag presentation. Should trigger strong emergency advice."
+  },
+  {
+    "id": "eval_002",
+    "concern": "mild headache for one day after less sleep",
+    "expected_urgency": "low",
+    "notes": "Common self-limiting issue."
+  },
+  {
+    "id": "eval_003",
+    "concern": "fever 101F and body ache for two days",
+    "expected_urgency": "moderate",
+    "notes": "Possible viral illness. Monitor and review if worsens."
+  },
+  {
+    "id": "eval_004",
+    "concern": "difficulty breathing and chest tightness",
+    "expected_urgency": "high",
+    "notes": "Respiratory red flag."
+  },
+  {
+    "id": "eval_005",
+    "concern": "seasonal sneezing and runny nose",
+    "expected_urgency": "low",
+    "notes": "Typical allergic rhinitis."
+  },
+  {
+    "id": "eval_006",
+    "concern": "burning sensation while urinating for 2 days",
+    "expected_urgency": "moderate",
+    "notes": "Possible UTI – medical review recommended."
+  },
+  {
+    "id": "eval_007",
+    "concern": "small cut on finger while cooking",
+    "expected_urgency": "low",
+    "notes": "Minor injury – basic first aid."
+  },
+  {
+    "id": "eval_008",
+    "concern": "sudden weakness on one side of body",
+    "expected_urgency": "high",
+    "notes": "Possible stroke symptoms – emergency."
+  },
+  {
+    "id": "eval_009",
+    "concern": "acidity and mild heartburn after spicy food",
+    "expected_urgency": "low",
+    "notes": "Common, lifestyle + antacid usually sufficient."
+  },
+  {
+    "id": "eval_010",
+    "concern": "persistent vomiting and inability to keep fluids down",
+    "expected_urgency": "moderate",
+    "notes": "Risk of dehydration – clinical review advised."
+  },
+  {
+    "id": "eval_011",
+    "concern": "mild knee pain after long walk",
+    "expected_urgency": "low",
+    "notes": "Mechanical strain."
+  },
+  {
+    "id": "eval_012",
+    "concern": "high fever with rash and severe headache",
+    "expected_urgency": "high",
+    "notes": "Concerning combination – urgent assessment needed."
+  },
+  {
+    "id": "eval_013",
+    "concern": "difficulty falling asleep for a few days",
+    "expected_urgency": "low",
+    "notes": "Sleep hygiene first-line."
+  },
+  {
+    "id": "eval_014",
+    "concern": "blood in urine once",
+    "expected_urgency": "moderate",
+    "notes": "Requires medical evaluation."
+  },
+  {
+    "id": "eval_015",
+    "concern": "ankle swelling after standing all day",
+    "expected_urgency": "low",
+    "notes": "Common dependent oedema."
+  }
+]
