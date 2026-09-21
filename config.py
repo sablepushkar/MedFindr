@@ -1,5 +1,6 @@
 """
-Central configuration for MedFindr.
+Central configuration for MedFindr
+Version: V1.0 RD
 """
 
 from pathlib import Path
@@ -10,7 +11,7 @@ SAMPLE_CONCERNS_PATH = DATA_DIR / "sample_concerns.json"
 EVALUATION_SET_PATH = DATA_DIR / "evaluation_set.json"
 
 APP_NAME = "MedFindr"
-APP_VERSION = "V09 Evolve"
+APP_VERSION = "V1.0 RD"
 APP_CAPTION = "Developmental prototype · Not medical advice"
 
 DISCLAIMER = (

@@ -1,8 +1,6 @@
 """
 MedFindr - Main application entry point
-Version: V09 Evolve
-
-Includes simple Patient / Staff dual view.
+Version: V1.0 RD
 """
 
 from __future__ import annotations
@@ -64,8 +62,6 @@ def render_drug_result(result: dict[str, Any]) -> None:
 
 
 def render_structured_response(response, view_mode: str = "patient") -> None:
-    """Render response with slight differences for Patient vs Staff view."""
-
     for section in response.sections:
         st.markdown(f"### {section.title}")
 
@@ -85,8 +81,7 @@ def render_structured_response(response, view_mode: str = "patient") -> None:
         st.markdown("### 5. Drug Information")
         render_drug_result(response.drug_result)
 
-    # Staff view shows a bit more technical detail
-    if view_mode == "staff" and response.ebm:
+    if view_mode == "staff" and getattr(response, "ebm", None):
         st.markdown("### Technical Detail (Staff)")
         st.json(response.ebm.to_dict())
 
@@ -95,13 +90,16 @@ def render_structured_response(response, view_mode: str = "patient") -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title=f"{APP_NAME} {APP_VERSION}", page_icon="🩺", layout="centered")
+    st.set_page_config(
+        page_title=f"{APP_NAME} {APP_VERSION}",
+        page_icon="🩺",
+        layout="centered",
+    )
 
     st.title(APP_NAME)
     st.caption(f"{APP_VERSION} · {APP_CAPTION}")
     st.warning(DISCLAIMER)
 
-    # Dual view selector
     view_mode = st.radio(
         "View mode",
         options=["Patient", "Staff"],
