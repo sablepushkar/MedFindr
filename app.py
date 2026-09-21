@@ -1,9 +1,9 @@
 """
 MedFindr - Main application entry point.
-Version: 07.3 major
+Version: 07.5
 
-Urgency logic and drug lookup are fully isolated.
-Interface only orchestrates and renders.
+The UI is now a pure rendering layer.
+All response construction is handled by the Structured Response Engine.
 """
 
 from __future__ import annotations
@@ -21,8 +21,7 @@ from config import (
     DISCLAIMER,
     SAMPLE_CONCERNS_PATH,
 )
-from utils.drug_lookup import search_drug
-from utils.urgency import assess_urgency
+from utils.response_engine import build_response
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -76,22 +75,33 @@ def render_drug_result(result: dict[str, Any]) -> None:
         st.write(result["dosage_snippet"])
 
 
-def render_urgency(result) -> None:
-    level = result.level
+def render_structured_response(response) -> None:
+    """Render a complete StructuredResponse cleanly."""
 
-    if level == "high":
-        st.error("**Urgency level: HIGH**")
-    elif level == "moderate":
-        st.warning("**Urgency level: MODERATE**")
-    else:
-        st.info("**Urgency level: LOW**")
+    for section in response.sections:
+        st.markdown(f"### {section.title}")
 
-    st.markdown(result.recommendation)
+        if section.level == "high":
+            st.error(section.content)
+        elif section.level == "moderate":
+            st.warning(section.content)
+        elif section.level == "low":
+            st.info(section.content)
+        else:
+            st.write(section.content)
 
-    if result.reasons:
-        st.markdown("**Reasons detected:**")
-        for reason in result.reasons:
-            st.markdown(f"- {reason}")
+        if section.items:
+            for item in section.items:
+                st.markdown(f"- {item}")
+
+    # Drug section (only if present)
+    if response.drug_result:
+        st.markdown("### 4. Drug Information")
+        render_drug_result(response.drug_result)
+
+    # Notes
+    st.markdown("### 5. Notes")
+    st.write(response.notes)
 
 
 def main() -> None:
@@ -126,36 +136,11 @@ def main() -> None:
             st.error("Please enter a health concern first.")
             return
 
+        with st.spinner("Generating structured response..."):
+            response = build_response(concern=concern, drug_name=drug_name)
+
         st.subheader("Structured Response")
-
-        st.markdown("### 1. Understanding the Concern")
-        st.write(concern.strip())
-
-        st.markdown("### 2. Urgency Assessment")
-        urgency_result = assess_urgency(concern)
-        render_urgency(urgency_result)
-
-        st.markdown("### 3. Possible Next Steps / Remedies (general)")
-        st.markdown(
-            """
-- Rest and maintain good hydration  
-- Monitor symptoms over the next 24–48 hours  
-- For mild symptoms, pharmacy advice on suitable over-the-counter options may help  
-- Seek medical attention if symptoms persist, worsen, or new concerning signs appear
-            """
-        )
-
-        if drug_name and drug_name.strip():
-            st.markdown("### 4. Drug Information")
-            with st.spinner("Looking up drug information..."):
-                result = search_drug(drug_name.strip())
-            render_drug_result(result)
-
-        st.markdown("### 5. Notes")
-        st.write(
-            "Urgency assessment is currently rule-based and fully transparent. "
-            "Later versions will add explainable machine learning models while keeping the same clear output format."
-        )
+        render_structured_response(response)
 
     with st.sidebar:
         st.header("Sample Concerns")
