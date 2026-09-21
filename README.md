@@ -1,20 +1,20 @@
 # MedFindr
 
-**Version: 07.1 dev**  
-**Status:** Developmental / Data foundation stage
+**Version: 07.2**  
+**Status:** Developmental / Drug module strengthened
 
 MedFindr is a structured health-concern assistant prototype.  
 It takes a free-text description of a health issue and returns a clear, sectioned response that can be useful for patients or pharmacy/clinic staff.
 
-This is still early work. The current version focuses on a clean foundation and high-quality sample/evaluation data so that later clinical logic and models can be tested properly.
+Current focus remains on building a clean, reliable foundation before adding heavier clinical intelligence.
 
 ---
 
-### Current Capabilities (07.1 dev)
+### Current Capabilities (07.2)
 
 - Simple text input for health concern
 - Structured output sections
-- Basic OpenFDA drug lookup
+- Improved OpenFDA drug lookup (better field extraction & safety snippets)
 - Curated sample concerns + evaluation set
 - Strong safety disclaimers
 
@@ -40,10 +40,10 @@ MedFindr/
 ├── app.py
 ├── config.py
 ├── utils/
-│   └── drug_lookup.py
+│   └── drug_lookup.py          # Strengthened in 07.2
 ├── data/
-│   ├── sample_concerns.json      # Broad set for manual testing
-│   └── evaluation_set.json       # Smaller labelled set for measuring progress
+│   ├── sample_concerns.json
+│   └── evaluation_set.json
 ├── requirements.txt
 └── README.md
 ```
@@ -54,7 +54,8 @@ MedFindr/
 
 - **V0.7** – Initial working prototype
 - **V07.1** – Foundation hardening
-- **07.1 dev** – Sample data cleaning + evaluation set added
+- **07.1 dev** – Sample data + evaluation set
+- **07.2** – Drug module upgrade (Phase 1)
 
 ---
 

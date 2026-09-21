@@ -1,6 +1,13 @@
 """
 Drug lookup utility using OpenFDA.
-Version aligned with V07.1 – kept focused and robust.
+Version: 07.2 – Phase 1 upgrade
+
+Improvements:
+- More reliable search query construction
+- Cleaner structured output
+- Better extraction of safety-relevant fields
+- Robust timeout and error handling
+- Fully isolated from UI logic
 """
 
 from __future__ import annotations
@@ -15,22 +22,55 @@ from config import OPENFDA_LABEL_URL, OPENFDA_TIMEOUT
 logger = logging.getLogger(__name__)
 
 
-def search_drug(name: str) -> dict[str, Any] | None:
-    """
-    Perform a basic OpenFDA drug label search.
+def _first(value: Any, default: str = "N/A") -> str:
+    """Safely extract the first item from a list or return default."""
+    if isinstance(value, list) and value:
+        return str(value[0]).strip()
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    return default
 
-    Returns a compact dictionary of useful fields or an error structure.
-    Never raises – always returns a dict or None.
+
+def _truncate(text: str, limit: int = 350) -> str:
+    """Truncate long text cleanly."""
+    text = text.strip()
+    if len(text) <= limit:
+        return text
+    return text[:limit].rsplit(" ", 1)[0] + "..."
+
+
+def search_drug(name: str) -> dict[str, Any]:
+    """
+    Perform an improved OpenFDA drug label search.
+
+    Returns a consistent dictionary containing:
+    - identification fields
+    - key safety / usage snippets when available
+    - clear error or not-found messages
+
+    Never raises an exception to the caller.
     """
     cleaned = (name or "").strip()
     if len(cleaned) < 2:
-        return {"error": "Drug name too short"}
+        return {
+            "status": "error",
+            "message": "Drug name is too short",
+        }
+
+    # Build a reasonably precise search
+    # Prefer exact-ish matches on brand or generic name
+    search_query = (
+        f'openfda.brand_name:"{cleaned}" OR '
+        f'openfda.generic_name:"{cleaned}" OR '
+        f'openfda.substance_name:"{cleaned}"'
+    )
 
     try:
         params = {
-            "search": f'openfda.brand_name:"{cleaned}" OR openfda.generic_name:"{cleaned}"',
+            "search": search_query,
             "limit": 1,
         }
+
         response = requests.get(
             OPENFDA_LABEL_URL,
             params=params,
@@ -38,44 +78,71 @@ def search_drug(name: str) -> dict[str, Any] | None:
         )
 
         if response.status_code != 200:
-            logger.warning("OpenFDA returned status %s", response.status_code)
-            return {"error": f"API returned status {response.status_code}"}
+            logger.warning("OpenFDA status %s for query '%s'", response.status_code, cleaned)
+            return {
+                "status": "error",
+                "message": f"OpenFDA returned status {response.status_code}",
+            }
 
         payload = response.json()
         results = payload.get("results") or []
+
         if not results:
-            return {"message": "No matching drug label found"}
+            return {
+                "status": "not_found",
+                "message": f"No drug label found for '{cleaned}'",
+                "query": cleaned,
+            }
 
         item = results[0]
         openfda = item.get("openfda") or {}
 
-        def first(field: str) -> str:
-            values = openfda.get(field)
-            if isinstance(values, list) and values:
-                return str(values[0])
-            return "N/A"
-
         result: dict[str, Any] = {
-            "brand_name": first("brand_name"),
-            "generic_name": first("generic_name"),
-            "manufacturer": first("manufacturer_name"),
-            "route": first("route"),
+            "status": "success",
+            "query": cleaned,
+            "brand_name": _first(openfda.get("brand_name")),
+            "generic_name": _first(openfda.get("generic_name")),
+            "substance_name": _first(openfda.get("substance_name")),
+            "manufacturer": _first(openfda.get("manufacturer_name")),
+            "route": _first(openfda.get("route")),
+            "product_type": _first(openfda.get("product_type")),
         }
 
-        # Optional longer fields (truncated for readability)
+        # Safety & usage oriented fields (truncated)
         if "indications_and_usage" in item and item["indications_and_usage"]:
-            text = item["indications_and_usage"][0]
-            result["indications_snippet"] = text[:320] + ("..." if len(text) > 320 else "")
+            result["indications_snippet"] = _truncate(item["indications_and_usage"][0])
 
         if "warnings" in item and item["warnings"]:
-            text = item["warnings"][0]
-            result["warnings_snippet"] = text[:320] + ("..." if len(text) > 320 else "")
+            result["warnings_snippet"] = _truncate(item["warnings"][0])
+
+        if "boxed_warning" in item and item["boxed_warning"]:
+            result["boxed_warning_snippet"] = _truncate(item["boxed_warning"][0], limit=300)
+
+        if "dosage_and_administration" in item and item["dosage_and_administration"]:
+            result["dosage_snippet"] = _truncate(item["dosage_and_administration"][0], limit=280)
+
+        # Useful identifiers when present
+        if openfda.get("package_ndc"):
+            result["example_ndc"] = _first(openfda.get("package_ndc"))
 
         return result
 
     except requests.Timeout:
-        logger.warning("OpenFDA request timed out")
-        return {"error": "Request timed out"}
+        logger.warning("OpenFDA timeout for '%s'", cleaned)
+        return {
+            "status": "error",
+            "message": "Request timed out. Please try again.",
+        }
+    except requests.RequestException as exc:
+        logger.warning("Request error: %s", exc)
+        return {
+            "status": "error",
+            "message": "Network or API request failed",
+        }
     except Exception as exc:
         logger.exception("Unexpected error in drug lookup")
-        return {"error": str(exc)}
+        return {
+            "status": "error",
+            "message": "Unexpected error occurred",
+            "detail": str(exc),
+        }

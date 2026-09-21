@@ -1,9 +1,8 @@
 """
 MedFindr - Main application entry point.
-Version: 07.1 dev
+Version: 07.2
 
-Interface is intentionally kept minimal and stable.
-Business logic will be moved out in later steps.
+Interface remains minimal. Drug lookup now returns richer structured data.
 """
 
 from __future__ import annotations
@@ -23,22 +22,58 @@ from config import (
 )
 from utils.drug_lookup import search_drug
 
-# Basic logging setup
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 def load_sample_concerns() -> list[dict[str, Any]]:
-    """Load sample concerns safely."""
     try:
         with open(SAMPLE_CONCERNS_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
-        if isinstance(data, list):
-            return data
-        return []
+        return data if isinstance(data, list) else []
     except Exception as exc:
         logger.warning("Could not load sample concerns: %s", exc)
         return []
+
+
+def render_drug_result(result: dict[str, Any]) -> None:
+    """Render drug lookup result in a clean, readable way."""
+    status = result.get("status")
+
+    if status == "error":
+        st.error(result.get("message", "Unknown error"))
+        return
+
+    if status == "not_found":
+        st.warning(result.get("message", "No information found"))
+        return
+
+    # Success case
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(f"**Brand name:** {result.get('brand_name', 'N/A')}")
+        st.markdown(f"**Generic name:** {result.get('generic_name', 'N/A')}")
+        st.markdown(f"**Substance:** {result.get('substance_name', 'N/A')}")
+    with col2:
+        st.markdown(f"**Manufacturer:** {result.get('manufacturer', 'N/A')}")
+        st.markdown(f"**Route:** {result.get('route', 'N/A')}")
+        st.markdown(f"**Product type:** {result.get('product_type', 'N/A')}")
+
+    if result.get("boxed_warning_snippet"):
+        st.error("**Boxed Warning (excerpt)**")
+        st.write(result["boxed_warning_snippet"])
+
+    if result.get("warnings_snippet"):
+        st.warning("**Warnings (excerpt)**")
+        st.write(result["warnings_snippet"])
+
+    if result.get("indications_snippet"):
+        st.info("**Indications (excerpt)**")
+        st.write(result["indications_snippet"])
+
+    if result.get("dosage_snippet"):
+        st.markdown("**Dosage & Administration (excerpt)**")
+        st.write(result["dosage_snippet"])
 
 
 def main() -> None:
@@ -55,7 +90,6 @@ def main() -> None:
 
     samples = load_sample_concerns()
 
-    # --- Input section ---
     concern = st.text_area(
         "Describe the health concern",
         placeholder="Example: mild headache and body ache for 2 days",
@@ -64,7 +98,7 @@ def main() -> None:
 
     drug_name = st.text_input(
         "Optional: medicine name to look up",
-        placeholder="e.g. paracetamol",
+        placeholder="e.g. paracetamol / ibuprofen / amoxicillin",
     )
 
     generate = st.button("Generate structured view", type="primary")
@@ -76,15 +110,20 @@ def main() -> None:
 
         st.subheader("Structured Response")
 
-        # Section 1
         st.markdown("### 1. Understanding the Concern")
         st.write(concern.strip())
 
-        # Section 2 - basic urgency (will be replaced in later step)
         st.markdown("### 2. Urgency Check (basic)")
         lower = concern.lower()
-        high_keywords = ["chest pain", "difficulty breathing", "severe", "unconscious", "bleeding heavily", "stroke", "heart attack", "one side", "sudden weakness"]
-        moderate_keywords = ["fever", "pain", "vomit", "dizziness", "bleeding", "swelling", "burning sensation", "blood in"]
+        high_keywords = [
+            "chest pain", "difficulty breathing", "severe", "unconscious",
+            "bleeding heavily", "stroke", "heart attack", "one side",
+            "sudden weakness", "severe headache with fever"
+        ]
+        moderate_keywords = [
+            "fever", "pain", "vomit", "dizziness", "bleeding",
+            "swelling", "burning sensation", "blood in"
+        ]
 
         if any(k in lower for k in high_keywords):
             st.error("Possible high urgency signals detected. Seek emergency care immediately if symptoms are serious.")
@@ -93,7 +132,6 @@ def main() -> None:
         else:
             st.info("Based on the description this appears low-to-moderate. Continue to monitor for any change.")
 
-        # Section 3
         st.markdown("### 3. Possible Next Steps / Remedies (general)")
         st.markdown(
             """
@@ -104,32 +142,29 @@ def main() -> None:
             """
         )
 
-        # Section 4 - drug lookup
         if drug_name and drug_name.strip():
             st.markdown("### 4. Drug Information")
             with st.spinner("Looking up drug information..."):
                 result = search_drug(drug_name.strip())
-            if result:
-                st.json(result)
-            else:
-                st.write("No detailed information returned.")
+            render_drug_result(result)
 
-        # Section 5
         st.markdown("### 5. Notes")
         st.write(
-            "This is a basic structured breakdown produced by the current developmental version. "
+            "This is a developmental structured breakdown. "
             "Later versions will include improved urgency logic, explainable risk models, "
             "and richer drug-safety information."
         )
 
-    # Sidebar – samples
     with st.sidebar:
         st.header("Sample Concerns")
-        st.caption("Click to inspect (copy into the main box if needed)")
+        st.caption("Click to inspect")
         if samples:
             for i, item in enumerate(samples[:12]):
                 concern_text = item.get("concern", "")
-                if st.button(concern_text[:55] + ("..." if len(concern_text) > 55 else ""), key=f"s_{i}"):
+                if st.button(
+                    concern_text[:55] + ("..." if len(concern_text) > 55 else ""),
+                    key=f"s_{i}",
+                ):
                     st.session_state["last_sample"] = concern_text
         else:
             st.write("No sample data loaded.")

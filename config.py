@@ -13,7 +13,7 @@ EVALUATION_SET_PATH = DATA_DIR / "evaluation_set.json"
 
 # App metadata
 APP_NAME = "MedFindr"
-APP_VERSION = "07.1 dev"
+APP_VERSION = "07.2"
 APP_CAPTION = "Developmental prototype · Not medical advice"
 
 # Safety
@@ -24,5 +24,5 @@ DISCLAIMER = (
 )
 
 # API
-OPENFDA_TIMEOUT = 8
+OPENFDA_TIMEOUT = 10
 OPENFDA_LABEL_URL = "https://api.fda.gov/drug/label.json"
