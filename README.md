@@ -1,24 +1,30 @@
 # MedFindr
 
-**Version: 08.5**  
-**Status:** Developmental / EBM layer hardened & ready for real model
+**Version: 09.0**  
+**Status:** Developmental prototype (stable foundation)
 
-MedFindr is a structured health-concern assistant prototype that produces clear, sectioned, and explainable responses.
+MedFindr is a structured health-concern assistant designed as a focused med × pharma portfolio project.  
+It takes a free-text description of a health issue and returns a clear, sectioned, and explainable response that can be useful for patients or pharmacy/clinic staff.
+
+The current version prioritises clean architecture, transparency, and extensibility over feature completeness.
 
 ---
 
-### Current Capabilities (08.5)
+### What it does (09.0)
 
-- Clean Structured Response Engine
-- Transparent rule-based urgency assessment
-- Explainable Risk Assessment layer (EBM interface fully prepared)
-- Improved OpenFDA drug lookup
-- Strong separation of concerns
-- Ready for a trained InterpretML EBM model to be dropped in
+- Accepts a free-text health concern
+- Produces a structured response with clear sections
+- Transparent rule-based urgency / red-flag assessment
+- Explainable risk layer (EBM interface ready for a real InterpretML model)
+- OpenFDA drug lookup with safety-relevant fields
+- Strong separation between UI and business logic
+- Curated sample concerns + evaluation set for testing
 
 ### How to run
 
 ```bash
+git clone https://github.com/sablepushkar/MedFindr.git
+cd MedFindr
 pip install -r requirements.txt
 streamlit run app.py
 ```
@@ -27,7 +33,7 @@ streamlit run app.py
 
 **This is not medical advice.**  
 MedFindr is a developmental research and portfolio prototype only.  
-Always consult a qualified healthcare professional.
+It must not be used for actual clinical decisions. Always consult a qualified healthcare professional.
 
 ---
 
@@ -35,13 +41,13 @@ Always consult a qualified healthcare professional.
 
 ```
 MedFindr/
-├── app.py
-├── config.py
+├── app.py                      # Thin rendering layer
+├── config.py                   # Central configuration
 ├── utils/
-│   ├── response_engine.py
-│   ├── urgency.py
-│   ├── ebm_risk.py
-│   └── drug_lookup.py
+│   ├── response_engine.py      # Structured response builder
+│   ├── urgency.py              # Transparent rule-based urgency
+│   ├── ebm_risk.py             # Explainable risk interface (EBM-ready)
+│   └── drug_lookup.py          # OpenFDA utility
 ├── data/
 │   ├── sample_concerns.json
 │   └── evaluation_set.json
@@ -51,12 +57,21 @@ MedFindr/
 
 ---
 
-### Version History
+### Design Principles
 
-- **V0.7 → 07.5** – Foundation + Structured Response Engine
-- **08.1 Beta testing EBM** – First EBM interface
-- **08.5** – EBM layer hardened, model-loading path prepared
+- Keep the interface simple and stable
+- Keep all clinical logic isolated and testable
+- Prefer transparent / glass-box methods
+- Make future additions (real EBM model, dual-view, tools) low-friction
 
 ---
 
-Built as a focused med × pharma learning and portfolio project.
+### Version History (summary)
+
+- **V0.7 – 07.5** → Foundation, data, drug module, urgency engine, structured response engine
+- **08.1 – 08.5** → Explainable risk layer (EBM interface) introduced and hardened
+- **09.0** → Portfolio polish and stability pass
+
+---
+
+Built as a focused learning and portfolio project in the med × pharma domain.

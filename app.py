@@ -1,6 +1,6 @@
 """
 MedFindr - Main application entry point
-Version: 08.5
+Version: 09.0
 """
 
 from __future__ import annotations
@@ -94,8 +94,16 @@ def main() -> None:
 
     samples = load_sample_concerns()
 
-    concern = st.text_area("Describe the health concern", placeholder="Example: mild headache and body ache for 2 days", height=110)
-    drug_name = st.text_input("Optional: medicine name to look up", placeholder="e.g. paracetamol / ibuprofen / amoxicillin")
+    concern = st.text_area(
+        "Describe the health concern",
+        placeholder="Example: mild headache and body ache for 2 days",
+        height=110,
+    )
+
+    drug_name = st.text_input(
+        "Optional: medicine name to look up",
+        placeholder="e.g. paracetamol / ibuprofen / amoxicillin",
+    )
 
     if st.button("Generate structured view", type="primary"):
         if not concern or not concern.strip():
