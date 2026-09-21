@@ -1,20 +1,20 @@
 # MedFindr
 
-**Version: 07.5**  
-**Status:** Developmental / Structured Response Engine (refined)
+**Version: 08.1 Beta testing EBM**  
+**Status:** Developmental / First Explainable Risk Layer (Beta)
 
 MedFindr is a structured health-concern assistant prototype.  
-It converts a free-text health concern into a clear, sectioned response that can be useful for patients or pharmacy/clinic staff.
+It converts a free-text health concern into a clear, sectioned, explainable response.
 
 ---
 
-### Current Capabilities (07.5)
+### Current Capabilities (08.1)
 
-- Clean, typed Structured Response Engine
-- Transparent rule-based urgency / red-flag assessment
-- Improved OpenFDA drug lookup with safety-relevant fields
+- Clean Structured Response Engine
+- Transparent rule-based urgency assessment
+- **New:** EBM-style explainable risk layer (beta placeholder with full interface)
+- Improved OpenFDA drug lookup
 - Fully separated UI and business logic
-- Curated sample concerns + evaluation set
 - Strong safety disclaimers
 
 ### How to run
@@ -36,12 +36,13 @@ It must not be used for actual clinical decisions. Always consult a qualified he
 
 ```
 MedFindr/
-├── app.py                      # Thin rendering layer only
+├── app.py
 ├── config.py
 ├── utils/
-│   ├── response_engine.py      # Core structured response builder
-│   ├── urgency.py              # Transparent urgency engine
-│   └── drug_lookup.py          # OpenFDA utility
+│   ├── response_engine.py
+│   ├── urgency.py
+│   ├── ebm_risk.py             # New in 08.1
+│   └── drug_lookup.py
 ├── data/
 │   ├── sample_concerns.json
 │   └── evaluation_set.json
@@ -53,12 +54,8 @@ MedFindr/
 
 ### Version History
 
-- **V0.7** – Initial working prototype
-- **V07.1** – Foundation hardening
-- **07.1 dev** – Sample data + evaluation set
-- **07.2** – Drug module upgrade (Phase 1)
-- **07.3 major** – Basic Red-Flag & Urgency Engine
-- **07.5** – Structured Response Engine (+ refinement pass)
+- **V0.7** → **07.5** – Foundation + Structured Response Engine
+- **08.1 Beta testing EBM** – First Explainable Risk Layer (interface ready)
 
 ---
 

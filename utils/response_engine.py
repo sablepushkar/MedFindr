@@ -1,10 +1,9 @@
 """
 Structured Response Engine
-Version: 07.5 (refined)
+Version: 08.1 Beta testing EBM
 
-Single source of truth for generating a complete, consistent,
-typed response object. UI only renders the result.
-Designed to stay stable when EBM, tools, or dual-view are added later.
+Now optionally includes EBM-style risk explanation.
+Remains fully backward compatible.
 """
 
 from __future__ import annotations
@@ -13,23 +12,23 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 from utils.drug_lookup import search_drug
+from utils.ebm_risk import EBMExplanation, assess_risk_ebm
 from utils.urgency import UrgencyResult, assess_urgency
 
 
 @dataclass
 class Section:
-    """One display section in the final response."""
     title: str
     content: str
-    level: Optional[str] = None          # "high" | "moderate" | "low" | None
+    level: Optional[str] = None
     items: List[str] = field(default_factory=list)
 
 
 @dataclass
 class StructuredResponse:
-    """Complete structured output produced by the engine."""
     concern: str
     urgency: UrgencyResult
+    ebm: Optional[EBMExplanation] = None
     sections: List[Section] = field(default_factory=list)
     drug_result: Optional[Dict[str, Any]] = None
     notes: str = ""
@@ -38,6 +37,7 @@ class StructuredResponse:
         return {
             "concern": self.concern,
             "urgency": self.urgency.to_dict(),
+            "ebm": self.ebm.to_dict() if self.ebm else None,
             "sections": [
                 {
                     "title": s.title,
@@ -55,20 +55,24 @@ class StructuredResponse:
 def build_response(
     concern: str,
     drug_name: Optional[str] = None,
+    include_ebm: bool = True,
 ) -> StructuredResponse:
     """
-    Build a complete StructuredResponse from raw user input.
-
-    This is the only public entry point the UI should call.
+    Build a complete StructuredResponse.
     """
     cleaned = (concern or "").strip()
 
-    # --- Urgency ---
+    # 1. Rule-based urgency (always on)
     urgency: UrgencyResult = assess_urgency(cleaned)
+
+    # 2. Optional EBM-style risk layer
+    ebm_result: Optional[EBMExplanation] = None
+    if include_ebm:
+        ebm_result = assess_risk_ebm(cleaned, urgency_level=urgency.level)
 
     sections: List[Section] = []
 
-    # 1. Understanding
+    # Section 1
     sections.append(
         Section(
             title="1. Understanding the Concern",
@@ -76,32 +80,35 @@ def build_response(
         )
     )
 
-    # 2. Urgency Assessment
+    # Section 2 – Urgency
     sections.append(
         Section(
-            title="2. Urgency Assessment",
+            title="2. Urgency Assessment (Rule-based)",
             content=urgency.recommendation,
             level=urgency.level,
             items=list(urgency.reasons),
         )
     )
 
-    # 3. Next Steps (tone adapts lightly to urgency)
+    # Section 3 – EBM Risk (if available)
+    if ebm_result:
+        ebm_items = [f"{k}: {v:.2f}" for k, v in ebm_result.local_contribution.items()]
+        sections.append(
+            Section(
+                title="3. Explainable Risk Assessment (EBM Beta)",
+                content=ebm_result.summary,
+                level=ebm_result.risk_level,
+                items=ebm_result.top_factors + ebm_items,
+            )
+        )
+
+    # Section 4 – Next Steps
     if urgency.level == "high":
-        next_content = (
-            "High urgency signals were detected. "
-            "Urgent medical evaluation should be prioritised."
-        )
+        next_content = "High urgency signals detected. Urgent medical evaluation should be prioritised."
     elif urgency.level == "moderate":
-        next_content = (
-            "Moderate concern indicators are present. "
-            "Close monitoring and timely medical review are recommended."
-        )
+        next_content = "Moderate concern indicators present. Close monitoring and timely medical review are recommended."
     else:
-        next_content = (
-            "No strong red-flag patterns detected on the current description. "
-            "General self-care measures may be appropriate while continuing to monitor."
-        )
+        next_content = "No strong red-flag patterns detected. General self-care measures may be appropriate while monitoring."
 
     next_items = [
         "Rest and maintain good hydration",
@@ -112,27 +119,28 @@ def build_response(
 
     sections.append(
         Section(
-            title="3. Possible Next Steps / Remedies (general)",
+            title="4. Possible Next Steps / Remedies (general)",
             content=next_content,
             items=next_items,
         )
     )
 
-    # Optional drug lookup
-    drug_result: Optional[Dict[str, Any]] = None
+    # Optional drug
+    drug_result = None
     if drug_name and drug_name.strip():
         drug_result = search_drug(drug_name.strip())
 
     notes = (
-        "Structured response generated by MedFindr response engine (v07.5). "
-        "Urgency assessment is currently rule-based and fully transparent. "
-        "Future versions will add explainable machine-learning models "
-        "while preserving this clear output structure."
+        "Response generated by MedFindr v08.1 (Beta testing EBM). "
+        "Urgency is rule-based and fully transparent. "
+        "EBM component is currently a structured beta placeholder – "
+        "a trained InterpretML model will be integrated in the next iteration."
     )
 
     return StructuredResponse(
         concern=cleaned,
         urgency=urgency,
+        ebm=ebm_result,
         sections=sections,
         drug_result=drug_result,
         notes=notes,

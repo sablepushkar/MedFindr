@@ -1,9 +1,8 @@
 """
 MedFindr - Main application entry point
-Version: 07.5 (refined)
+Version: 08.1 Beta testing EBM
 
-Pure rendering layer. All business logic lives in utils/response_engine.py
-and supporting modules. This keeps the interface stable and easy to evolve.
+Pure rendering layer.
 """
 
 from __future__ import annotations
@@ -38,13 +37,11 @@ def load_sample_concerns() -> list[dict[str, Any]]:
 
 
 def render_drug_result(result: dict[str, Any]) -> None:
-    """Render drug lookup result with clear visual hierarchy."""
     status = result.get("status")
 
     if status == "error":
         st.error(result.get("message", "Unknown error"))
         return
-
     if status == "not_found":
         st.warning(result.get("message", "No information found"))
         return
@@ -62,22 +59,18 @@ def render_drug_result(result: dict[str, Any]) -> None:
     if result.get("boxed_warning_snippet"):
         st.error("**Boxed Warning (excerpt)**")
         st.write(result["boxed_warning_snippet"])
-
     if result.get("warnings_snippet"):
         st.warning("**Warnings (excerpt)**")
         st.write(result["warnings_snippet"])
-
     if result.get("indications_snippet"):
         st.info("**Indications (excerpt)**")
         st.write(result["indications_snippet"])
-
     if result.get("dosage_snippet"):
         st.markdown("**Dosage & Administration (excerpt)**")
         st.write(result["dosage_snippet"])
 
 
 def render_structured_response(response) -> None:
-    """Render a complete StructuredResponse."""
     for section in response.sections:
         st.markdown(f"### {section.title}")
 
@@ -94,10 +87,10 @@ def render_structured_response(response) -> None:
             st.markdown(f"- {item}")
 
     if response.drug_result:
-        st.markdown("### 4. Drug Information")
+        st.markdown("### 5. Drug Information")
         render_drug_result(response.drug_result)
 
-    st.markdown("### 5. Notes")
+    st.markdown("### Notes")
     st.write(response.notes)
 
 
