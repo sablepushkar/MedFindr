@@ -26,7 +26,7 @@ def load_sample_concerns() -> list[dict[str, Any]]:
             data = json.load(f)
         return data if isinstance(data, list) else []
     except Exception as exc:
-        logger.warning("Could not load sample concerns: %s", exp)
+        logger.warning("Could not load sample concerns: %s", exc)
         return []
 
 
