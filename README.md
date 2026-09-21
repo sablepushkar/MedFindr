@@ -1,39 +1,40 @@
 # MedFindr
 
-**Version: 09.0**  
-**Status:** Developmental prototype (stable foundation)
+**Version: V09.1a**  
+**Status:** Developmental – Real EBM training pipeline added
 
-MedFindr is a structured health-concern assistant designed as a focused med × pharma portfolio project.  
-It takes a free-text description of a health issue and returns a clear, sectioned, and explainable response that can be useful for patients or pharmacy/clinic staff.
-
-The current version prioritises clean architecture, transparency, and extensibility over feature completeness.
+MedFindr is a structured, explainable health-concern assistant (med × pharma portfolio project).
 
 ---
 
-### What it does (09.0)
+### Current Capabilities (V09.1a)
 
-- Accepts a free-text health concern
-- Produces a structured response with clear sections
-- Transparent rule-based urgency / red-flag assessment
-- Explainable risk layer (EBM interface ready for a real InterpretML model)
-- OpenFDA drug lookup with safety-relevant fields
-- Strong separation between UI and business logic
-- Curated sample concerns + evaluation set for testing
+- Structured response engine
+- Transparent rule-based urgency assessment
+- **New:** Real Explainable Boosting Machine training pipeline
+- Automatic fallback to transparent placeholder if no model is trained yet
+- OpenFDA drug lookup
+- Clean architecture
 
 ### How to run
 
 ```bash
-git clone https://github.com/sablepushkar/MedFindr.git
-cd MedFindr
 pip install -r requirements.txt
 streamlit run app.py
 ```
 
+### Train the EBM model (recommended)
+
+```bash
+python scripts/train_ebm.py
+```
+
+This creates `models/ebm_urgency_model.pkl`. The app will automatically use it on next run.
+
 ### Important Notice
 
 **This is not medical advice.**  
-MedFindr is a developmental research and portfolio prototype only.  
-It must not be used for actual clinical decisions. Always consult a qualified healthcare professional.
+MedFindr is a developmental prototype only. Always consult a qualified healthcare professional.
 
 ---
 
@@ -41,37 +42,28 @@ It must not be used for actual clinical decisions. Always consult a qualified he
 
 ```
 MedFindr/
-├── app.py                      # Thin rendering layer
-├── config.py                   # Central configuration
+├── app.py
+├── config.py
+├── scripts/
+│   └── train_ebm.py          # Train the EBM model
 ├── utils/
-│   ├── response_engine.py      # Structured response builder
-│   ├── urgency.py              # Transparent rule-based urgency
-│   ├── ebm_risk.py             # Explainable risk interface (EBM-ready)
-│   └── drug_lookup.py          # OpenFDA utility
+│   ├── response_engine.py
+│   ├── urgency.py
+│   ├── ebm_risk.py
+│   └── drug_lookup.py
 ├── data/
-│   ├── sample_concerns.json
-│   └── evaluation_set.json
+├── models/                   # Created after training
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-### Design Principles
+### Version History
 
-- Keep the interface simple and stable
-- Keep all clinical logic isolated and testable
-- Prefer transparent / glass-box methods
-- Make future additions (real EBM model, dual-view, tools) low-friction
+- **09.0** – Stable foundation
+- **V09.1a** – Real EBM preparation & training setup
 
 ---
 
-### Version History (summary)
-
-- **V0.7 – 07.5** → Foundation, data, drug module, urgency engine, structured response engine
-- **08.1 – 08.5** → Explainable risk layer (EBM interface) introduced and hardened
-- **09.0** → Portfolio polish and stability pass
-
----
-
-Built as a focused learning and portfolio project in the med × pharma domain.
+Built as a focused med × pharma portfolio project.
