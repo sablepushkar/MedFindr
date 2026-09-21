@@ -1,47 +1,81 @@
+"""
+Drug lookup utility using OpenFDA.
+Version aligned with V07.1 – kept focused and robust.
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import Any
+
 import requests
 
-def search_drug(name: str):
+from config import OPENFDA_LABEL_URL, OPENFDA_TIMEOUT
+
+logger = logging.getLogger(__name__)
+
+
+def search_drug(name: str) -> dict[str, Any] | None:
     """
-    Very basic OpenFDA lookup.
-    Returns a small dict with available info or None.
-    Kept simple for V-0.7.
+    Perform a basic OpenFDA drug label search.
+
+    Returns a compact dictionary of useful fields or an error structure.
+    Never raises – always returns a dict or None.
     """
-    if not name or len(name.strip()) < 2:
-        return None
+    cleaned = (name or "").strip()
+    if len(cleaned) < 2:
+        return {"error": "Drug name too short"}
 
     try:
-        # OpenFDA drug label endpoint
-        url = "https://api.fda.gov/drug/label.json"
         params = {
-            "search": f'openfda.brand_name:"{name}" OR openfda.generic_name:"{name}"',
-            "limit": 1
+            "search": f'openfda.brand_name:"{cleaned}" OR openfda.generic_name:"{cleaned}"',
+            "limit": 1,
         }
-        resp = requests.get(url, params=params, timeout=8)
+        response = requests.get(
+            OPENFDA_LABEL_URL,
+            params=params,
+            timeout=OPENFDA_TIMEOUT,
+        )
 
-        if resp.status_code != 200:
-            return {"error": f"API returned {resp.status_code}"}
+        if response.status_code != 200:
+            logger.warning("OpenFDA returned status %s", response.status_code)
+            return {"error": f"API returned status {response.status_code}"}
 
-        data = resp.json()
-        if "results" not in data or len(data["results"]) == 0:
+        payload = response.json()
+        results = payload.get("results") or []
+        if not results:
             return {"message": "No matching drug label found"}
 
-        item = data["results"][0]
-        openfda = item.get("openfda", {})
+        item = results[0]
+        openfda = item.get("openfda") or {}
 
-        result = {
-            "brand_name": openfda.get("brand_name", ["N/A"])[0] if openfda.get("brand_name") else "N/A",
-            "generic_name": openfda.get("generic_name", ["N/A"])[0] if openfda.get("generic_name") else "N/A",
-            "manufacturer": openfda.get("manufacturer_name", ["N/A"])[0] if openfda.get("manufacturer_name") else "N/A",
-            "route": openfda.get("route", ["N/A"])[0] if openfda.get("route") else "N/A",
+        def first(field: str) -> str:
+            values = openfda.get(field)
+            if isinstance(values, list) and values:
+                return str(values[0])
+            return "N/A"
+
+        result: dict[str, Any] = {
+            "brand_name": first("brand_name"),
+            "generic_name": first("generic_name"),
+            "manufacturer": first("manufacturer_name"),
+            "route": first("route"),
         }
 
-        # Add a couple more fields if present
-        if "indications_and_usage" in item:
-            result["indications_snippet"] = item["indications_and_usage"][0][:300] + "..."
-        if "warnings" in item:
-            result["warnings_snippet"] = item["warnings"][0][:300] + "..."
+        # Optional longer fields (truncated for readability)
+        if "indications_and_usage" in item and item["indications_and_usage"]:
+            text = item["indications_and_usage"][0]
+            result["indications_snippet"] = text[:320] + ("..." if len(text) > 320 else "")
+
+        if "warnings" in item and item["warnings"]:
+            text = item["warnings"][0]
+            result["warnings_snippet"] = text[:320] + ("..." if len(text) > 320 else "")
 
         return result
 
-    except Exception as e:
-        return {"error": str(e)}
+    except requests.Timeout:
+        logger.warning("OpenFDA request timed out")
+        return {"error": "Request timed out"}
+    except Exception as exc:
+        logger.exception("Unexpected error in drug lookup")
+        return {"error": str(exc)}
