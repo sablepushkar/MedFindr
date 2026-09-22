@@ -1,7 +1,4 @@
-"""
-Central configuration for MedFindr
-Version: X1.0 (Defined Version)
-"""
+"""Central configuration for MedFindr X1.2."""
 
 from pathlib import Path
 
@@ -11,13 +8,13 @@ SAMPLE_CONCERNS_PATH = DATA_DIR / "sample_concerns.json"
 EVALUATION_SET_PATH = DATA_DIR / "evaluation_set.json"
 
 APP_NAME = "MedFindr"
-APP_VERSION = "X1.0"
-APP_CAPTION = "Defined Version · Developmental prototype · Not medical advice"
+APP_VERSION = "X1.2"
+APP_CAPTION = "Structured health-concern prototype • Explainable risk • Drug-label lookup"
 
 DISCLAIMER = (
-    "This is a developmental version of MedFindr. "
-    "It is not a substitute for professional medical advice, diagnosis, or treatment. "
-    "Always consult a qualified healthcare provider for any health concern."
+    "This is a developmental portfolio prototype. It is not a substitute for "
+    "professional medical advice, diagnosis, or treatment. Always consult a "
+    "qualified healthcare professional for real health concerns."
 )
 
 OPENFDA_TIMEOUT = 10
