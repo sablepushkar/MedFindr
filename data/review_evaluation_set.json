@@ -1,5 +1,17 @@
 [
-  {"case_id":"RV-001","input":"rash and fever after taking a new medicine","expected_signal_status":"flagged"},
-  {"case_id":"RV-002","input":"headache while using a medicine","expected_signal_status":"context_incomplete"},
-  {"case_id":"RV-003","input":"headache","expected_signal_status":"not_flagged"}
+  {
+    "case_id": "RV-001",
+    "input": "rash and fever after taking a new medicine",
+    "expected_signal_status": "flagged"
+  },
+  {
+    "case_id": "RV-002",
+    "input": "headache while using a medicine",
+    "expected_signal_status": "context_incomplete"
+  },
+  {
+    "case_id": "RV-003",
+    "input": "headache",
+    "expected_signal_status": "insufficient_context"
+  }
 ]
