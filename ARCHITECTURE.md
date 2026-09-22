@@ -1,87 +1,36 @@
-# MedFindr v1.2 — SignalGraph Architecture
+# MedFindr v2 Architecture
 
 ## System boundary
+MedFindr v2 is a local/session-oriented information workflow: `input → validation → structure → quality → signals → evidence → review → export`.
 
-MedFindr remains a single Python/Streamlit prototype. v1.2 adds a structured information pipeline without adding a database, authentication layer, separate backend, or persistent patient records.
+The application has no application database and no patient-account layer.
 
-USER → UI → APPLICATION LOGIC → DATA/EVIDENCE → RESULT
-
-1. Streamlit collects a bounded concern and optional public-label lookup term.
-2. The response engine validates and normalizes the request.
-3. Clinical information is extracted into a small structured model.
-4. Data quality reports present and missing information.
-5. The urgency engine generates a transparent prototype informational flag.
-6. The safety-signal layer checks configured medication-exposure patterns.
-7. The optional EBM layer provides explainable model output when available.
-8. Evidence objects keep generated rules distinct from external information.
-9. OpenFDA provides optional public label information with provenance.
-10. The development trace records the ordered software stages in memory.
-11. Streamlit renders the structured result.
-
-## SignalGraph data flow
-
-Free text
-  ↓
-Validation
-  ↓
-ClinicalContext
-  ├── Symptoms
-  ├── Medication context
-  └── Temporal relationship
-        ↓
-  ┌─────┼────────┬────────┐
-  ↓     ↓        ↓        ↓
-Quality Urgency Safety    EBM
-                 Signal
-                   ↓
-                Evidence
-                   ↓
-               Response
-                   ↓
-          Development Trace
-
-## Key design choices
-
-### Structured information before advanced intelligence
-
-The project first represents the information it has. This creates a clean boundary for later terminology mapping, analytics, evidence adapters, or validated models.
-
+## Core design
+### Structured information before intelligence
+The pipeline creates a normalized representation before later analysis stages.
 ### Signals are not conclusions
+Urgency and medication-safety rules are prototype software signals. They do not establish diagnosis, causality, treatment need, or clinical severity.
+### Evidence carries provenance
+Evidence objects identify evidence type and source. Retrieved public-label information remains distinguishable from MedFindr-generated rule evidence.
+### Human review is explicit
+`ReviewRecord` captures review status, evidence reviewed, reasoning, missing information, follow-up requirement, follow-up notes, disposition, and review timestamp.
+### Export without persistence
+A review bundle can be downloaded as JSON. The export does not imply that MedFindr stores the record.
 
-The safety layer uses explicit phrases and relationships. It uses terms such as potential, flagged, context incomplete, and review rather than claiming causality.
+## Data and privacy boundary
+The v2 prototype deliberately avoids patient identifiers and persistent clinical storage. It should not be described as an EHR, pharmacovigilance database, or compliance audit system.
 
-### Provenance is attached to evidence
+If persistence is introduced later, authentication/authorization, encrypted storage, retention/deletion rules, access logging, privacy review, data minimization, and governance must be designed separately.
 
-Generated rule evidence identifies its rule source. Retrieved public label information identifies source, endpoint, query, and retrieval time. These evidence classes remain distinct.
+## Failure handling
+- validation errors stop analysis early
+- external retrieval failures remain isolated
+- unexpected UI pipeline errors are logged server-side and shown generically
+- review validation blocks incomplete follow-up records
+- export contains explicit limitations
 
-### Trace without persistence
-
-The trace provides development visibility into the workflow. It is in-memory and should not be described as a compliant audit log.
-
-## Security/data boundary
-
-- No authentication
-- No patient account system
-- No application database
-- No patient-identifying data should be entered
-- Bounded input lengths
-- External failures handled without raw exception details in the UI
-
-## Deliberately not added
-
-- OMOP implementation
-- FHIR server
-- patient database
-- authentication
-- hospital/device connectivity
-- real-time alerting
-- autonomous diagnosis
-- large language model orchestration
-- microservices
-- production cloud infrastructure
-
-Those additions require additional requirements, validation, security controls, governance, and testing beyond this portfolio prototype.
+## Verification
+CI compiles the repository, imports the application, runs regression tests, and executes synthetic evaluation scripts.
 
 ## Extension points
-
-Future modules can support standardized terminology mapping, literature/evidence adapters, pharmacovigilance datasets, validated ML models, research analytics, institutional APIs, event/device adapters, and persistent storage after an explicit privacy/security design.
+Terminology adapters, evidence source adapters, validated pharmacovigilance datasets, model benchmarking, secure persistence, institutional integrations, and device/event ingestion can be added behind the current module boundaries.

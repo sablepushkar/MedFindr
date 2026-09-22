@@ -1,129 +1,70 @@
-# MedFindr v1.2
+# MedFindr
 
-**Med × Pharma × Data × Technology**
+**MedFindr v2.0 — student-built healthcare/pharma technology prototype for structured information, transparent signals, evidence provenance, human review, and workflow-oriented experimentation.**
 
-MedFindr is an actively developed healthcare/pharmaceutical technology prototype exploring medical information discovery, transparent informational flagging, structured data handling, evidence provenance, and future healthcare/pharma workflow integration.
+MedFindr is a portfolio-scale Python/Streamlit project exploring how unstructured health-concern text can be transformed into structured information, prototype medication-related safety signals, evidence objects, and a human review workflow.
 
-## Current status
+> **Scope:** MedFindr is an information-engineering prototype. It is not a diagnostic system, clinical decision-support product, pharmacovigilance validation system, medical-advice service, or compliance audit platform.
 
-**v1.2 — SignalGraph prototype**
+## v2 workflow
+`Input → Validation → Structured information → Data quality → Signal → Evidence → Human review → Disposition → Export`
 
-v1.2 adds a focused information-engineering layer rather than a generic chatbot. The prototype converts supplied text into structured findings, evaluates medication-related information patterns, attaches evidence/provenance objects, reports input completeness, and records an in-memory development trace.
-
-### Current workflow
-
-USER → STREAMLIT UI → VALIDATION → STRUCTURED CLINICAL INFORMATION → DATA QUALITY → URGENCY + SAFETY SIGNALS → EBM → EVIDENCE/OPENFDA → STRUCTURED RESULT + TRACE
-
-The repository currently has no application database, authentication system, or separate backend service. This remains deliberate: v1.2 demonstrates the information pipeline without unnecessary persistence or patient-account complexity.
-
-## SignalGraph
-
-SignalGraph is MedFindr's lightweight normalized information pipeline.
-
-It currently represents:
-- supported symptom concepts
-- optional medication context
-- temporal medication relationship when explicitly stated
-- context terms
+### v2 capabilities
+- normalized clinical/medication representation
+- explicit input completeness and missing information
 - prototype medication-related safety signals
-- evidence/provenance objects
-- input completeness indicators
-- ordered development stages
+- explainable risk layer
+- evidence and source provenance
+- human-in-the-loop Review Workspace
+- reviewer reasoning, evidence reviewed, follow-up notes, and disposition
+- session-scoped review state
+- portable JSON review bundle
+- synthetic evaluation fixtures
+- regression tests and CI
 
-A safety signal means an information pattern worth review by the prototype. It does not mean that a medicine caused an adverse event and does not establish diagnosis, treatment, or clinical risk.
+## Human workflow
+1. **Input** — plain-language concern and optional public-label lookup term.
+2. **Validation** — bounded and normalized input.
+3. **Structure** — symptom, medication, timing, and context extraction.
+4. **Data quality** — available and missing information are made explicit.
+5. **Signals** — deterministic prototype rules identify software-level patterns.
+6. **Evidence** — rule evidence and optional retrieved public label evidence carry provenance.
+7. **Review** — a human records what was checked, reasoning, missing information, follow-up, and disposition.
+8. **Export** — the current analysis and review state can be exported as JSON.
 
-## What works now
-
-- Bounded free-text validation
-- Lightweight normalized clinical-information model
-- Transparent rule-based prototype informational flags
-- Medication-related safety-signal pattern detection
-- Evidence objects separating generated signals from retrieved information
-- Data-quality/completeness indicator
-- In-memory development trace with generated analysis identifier
-- Optional Explainable Boosting Machine layer with explicit fallback
-- OpenFDA public label retrieval with timeout/error handling and source provenance
-- General and Technical UI modes
-- Synthetic SignalGraph evaluation fixture
-- Existing urgency evaluation with confusion matrix and per-class metrics
-- Automated regression checks through GitHub Actions
+The review layer is deliberately session-scoped. MedFindr does not add an application database, patient account system, or hidden persistence in v2.
 
 ## Architecture
-
-Presentation: app.py renders structured results.
-
-Application pipeline: utils/response_engine.py orchestrates the workflow.
-
-Structured information: utils/clinical_data.py converts bounded free text into a small normalized model. This is inspired by healthcare data-standardization principles but is not an implementation of OMOP or another common data model.
-
-Signal layer: utils/safety_signals.py detects configured medication-exposure patterns and intentionally avoids causal language.
-
-Evidence layer: utils/evidence.py represents both MedFindr-generated rule evidence and externally retrieved label information.
-
-External data: utils/drug_lookup.py isolates OpenFDA public label retrieval and attaches source metadata.
-
-Trace: utils/analysis_trace.py records ordered software stages in memory. It is a development trace, not a compliant audit log.
-
-## Technologies
-
-- Python
-- Streamlit
-- Requests
-- pandas / NumPy
-- scikit-learn
-- InterpretML
-- joblib
-- GitHub Actions
-
-## Run locally
-
-    python -m pip install -r requirements.txt
-    streamlit run app.py
-
-Regression suite:
-
-    python -m unittest discover -s tests -v
-
-Evaluations:
-
-    python scripts/evaluate.py
-    python scripts/evaluate_signals.py
-
-## Security and data handling
-
-- Application secrets are not stored in source code.
-- .env and Streamlit secrets files are ignored by Git.
-- User input is bounded and normalized.
-- External API failures do not expose raw exception details to the UI.
-- No patient records are persisted.
-- Do not enter real patient-identifying information.
-
-## Medical/pharma scope
-
-MedFindr separates retrieved public label information from prototype analysis.
-
-The safety-signal layer is a software-pattern detector for development and portfolio demonstration. It is not pharmacovigilance validation, adverse-event causality assessment, diagnostic reasoning, medical advice, or a clinical alert system.
-
-The OpenFDA adapter is used as a public information source. OpenFDA states that its data should not be relied on for medical-care decisions and that results may be unvalidated; MedFindr therefore presents retrieved label information separately from generated prototype signals.
-
-## Deliberate non-features
-
-v1.2 does not add patient accounts, authentication, persistent health records, hospital/device integrations, real-time clinical alert infrastructure, autonomous diagnosis, a large LLM/chatbot layer, microservices, or production cloud infrastructure.
-
-These remain future research/integration directions rather than claims about the current prototype.
+`USER → STREAMLIT UI → VALIDATION → STRUCTURED CLINICAL INFORMATION → DATA QUALITY → URGENCY + SAFETY SIGNALS → EXPLAINABLE RISK → EVIDENCE / OPENFDA → HUMAN REVIEW WORKSPACE → DISPOSITION + JSON EXPORT`
 
 ## Evaluation
+Synthetic fixtures cover urgency, SignalGraph behavior, and v2 review workflow behavior. These are software engineering checks, not clinical validation. Run `python scripts/evaluate_reviews.py` for the v2 review fixture set.
 
-The repository includes a 15-case urgency regression fixture and a separate synthetic medication-signal fixture with automated unit/contract tests. Results describe software behavior on these fixtures only; they do not establish clinical safety, efficacy, pharmacovigilance performance, or generalization.
+## Security and data boundary
+- no application database
+- no patient account system
+- no patient identifier field
+- no secrets committed to source
+- bounded text inputs
+- external retrieval separated from generated analysis
+- review state is session-scoped
+- export is explicit user action
+- UI errors are generic while unexpected exceptions are logged server-side
 
-## Future direction
+A real deployment would require authentication, authorization, secure persistence, retention rules, encryption, privacy review, audit controls, and regulatory analysis.
 
-Potential future work includes richer biomedical/pharma datasets, controlled literature retrieval, standardized terminology mapping, pharmacovigilance research workflows, biomedical knowledge graphs, validated ML experiments, institutional APIs, device/event inputs, and analytics over non-sensitive structured data.
+## Run locally
+```bash
+python -m pip install -r requirements.txt
+python -m unittest discover -s tests -v
+python scripts/evaluate.py
+python scripts/evaluate_signals.py
+python scripts/evaluate_reviews.py
+streamlit run app.py
+```
 
-The project should remain a serious student-built healthcare/pharma technology prototype rather than a simulated commercial medical platform.
+## Project direction
+MedFindr is a student-built project created and directed by Pushkar Sable. External assistance may be used selectively for research, implementation support, debugging, and review; product direction and final acceptance remain with the project creator.
 
-## Development principle
-
-inspect → plan → modify → test → fix → retest
-
-Build the foundation, not the fantasy.
+## Future directions
+Richer terminology normalization, literature/evidence adapters, validated pharmacovigilance datasets, model benchmarking, institutional API adapters, device/event adapters, role-based access controls, secure persistence, privacy-preserving analytics, and deployment architecture are possible next stages. Any clinical or regulated use would require domain validation and governance beyond this repository.
