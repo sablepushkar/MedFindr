@@ -1,86 +1,87 @@
-# MedFindr v1.1 — Architecture Audit
+# MedFindr v1.2 — SignalGraph Architecture
 
-## Current system boundary
+## System boundary
 
-MedFindr is currently a single Python/Streamlit prototype. It is not a full-stack application yet.
+MedFindr remains a single Python/Streamlit prototype. v1.2 adds a structured information pipeline without adding a database, authentication layer, separate backend, or persistent patient records.
 
-### USER → UI → APPLICATION LOGIC → API/DATA → RESULT
+USER → UI → APPLICATION LOGIC → DATA/EVIDENCE → RESULT
 
-1. User enters a free-text health concern and optionally a lookup term.
-2. Streamlit UI collects input and submits through one form.
-3. Input validation normalizes text and enforces bounded inputs.
-4. Response engine orchestrates the workflow.
-5. Urgency layer produces a transparent prototype informational flag.
-6. EBM layer optionally loads a compatible local model or exposes a fallback.
-7. External data layer retrieves structured label information from the configured public source.
-8. Structured response combines generated analysis and retrieved information while keeping provenance attached to external data.
-9. UI renders results, errors, scope notes, and source metadata.
+1. Streamlit collects a bounded concern and optional lookup term.
+2. The response engine validates and normalizes the request.
+3. Clinical information is extracted into a small structured model.
+4. Data quality reports present and missing information.
+5. The urgency engine generates a transparent prototype flag.
+6. The safety-signal layer checks configured medication-exposure patterns.
+7. The optional EBM layer provides explainable model output when available.
+8. Evidence objects keep generated rules distinct from external information.
+9. OpenFDA provides optional public label information with provenance.
+10. The analysis trace records the ordered software stages.
+11. Streamlit renders the structured result.
 
-## Audit findings
+## SignalGraph data flow
 
-### Working and retained
+Free text
+  ↓
+Validation
+  ↓
+ClinicalContext
+  ├── Symptoms
+  ├── Medication context
+  └── Temporal relationship
+        ↓
+  ┌─────┼────────┬────────┐
+  ↓     ↓        ↓        ↓
+Quality Urgency Safety    EBM
+                 Signal
+                   ↓
+                Evidence
+                   ↓
+               Response
+                   ↓
+             AnalysisTrace
 
-- Thin Streamlit presentation layer
-- Modular response engine
-- Rule-based urgency engine
-- Cached optional model loading
-- External-data isolation
-- Regression/evaluation tooling
-- Existing evaluation edge-case fixes
+## Key design choices
 
-### Improved in v1.1
+### Structured information before advanced intelligence
 
-- Bounded input validation
-- Defensive parsing of external API responses
-- Stable user-facing error messages
-- Source provenance for retrieved records
-- Explicit distinction between informational flags and retrieved data
-- Form-based submission to reduce accidental repeated actions
-- Mobile-friendly centered layout and full-width primary action
-- Staff-only technical detail remains opt-in
-- Automated regression workflow
-- Clear architecture and scope documentation
+The project first represents the information it has. This creates a clean boundary for later terminology mapping, analytics, evidence adapters, or validated models.
 
-### Deliberately not added
+### Signals are not conclusions
 
-- Database
-- Authentication
-- Patient accounts
-- Persistent health records
-- Hospital/device integrations
-- Real-time alert infrastructure
-- Autonomous diagnosis
-- Large AI/LLM layer
-- Complex microservices
-- Production cloud infrastructure
+The safety layer uses explicit phrases and relationships. It uses terms such as potential, flagged, context incomplete, and review rather than claiming causality.
 
-Those additions would increase system complexity without solving a current v1.1 reliability problem.
+### Provenance is attached to evidence
 
-## Security review
+Generated rule evidence identifies its rule source. Retrieved label information identifies source, endpoint, query, and retrieval time. These evidence classes remain distinct.
 
-No application secret is hard-coded in the current source. Local environment/secrets files are ignored. The current prototype does not implement authentication because it does not have user accounts or protected data.
+### Trace without persistence
 
-## Data/provenance model
+The trace provides development visibility into the workflow. It is in-memory and should not be described as a compliant audit log.
 
-External records carry:
+## Security/data boundary
 
-- source name
-- source type
-- source endpoint
-- query
-- retrieval timestamp
+- No authentication
+- No patient account system
+- No application database
+- No patient-identifying data should be entered
+- Bounded input lengths
+- External failures handled without raw exception details in the UI
 
-System-generated analysis is labelled separately and should never be presented as retrieved clinical evidence.
+## Deliberately not added
+
+- OMOP implementation
+- FHIR server
+- patient database
+- authentication
+- hospital/device connectivity
+- real-time alerting
+- autonomous diagnosis
+- large language model orchestration
+- microservices
+- production cloud infrastructure
+
+Those additions require additional requirements, validation, security controls, governance, and testing beyond this portfolio prototype.
 
 ## Extension points
 
-Future modules can be added behind the response-engine boundary:
-
-- evidence/data retrieval
-- structured pharmaceutical data
-- analytics
-- validated ML models
-- institutional API adapters
-- research workflows
-
-The current architecture intentionally keeps these as extension points rather than pretending they already exist.
+Future modules can support standardized terminology mapping, literature/evidence adapters, pharmacovigilance datasets, validated ML models, research analytics, institutional APIs, event/device adapters, and persistent storage after an explicit privacy/security design.

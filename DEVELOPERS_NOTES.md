@@ -1,68 +1,45 @@
 # MedFindr — Developer Notes
 
-## v1.1 — Reliability and architecture foundation
+## v1.2 — SignalGraph prototype
 
-v1.1 is the result of a repository audit followed by incremental reliability, data-flow, UX, provenance, and testing improvements.
-
-### Audit conclusion
-
-MedFindr is currently a single Python/Streamlit prototype. It has no database, authentication layer, or separate backend service. The working flow is:
-
-USER → Streamlit UI → validation → response engine → rule/model layers + external data retrieval → structured result.
-
-The existing modular implementation was retained rather than rewritten.
+v1.2 builds on the v1.1 reliability foundation without replacing the working architecture.
 
 ### Changes
 
-- Added bounded and normalized input validation.
-- Added defensive external-response parsing.
-- Added stable API error handling without exposing raw exception details.
-- Added source provenance metadata to retrieved external records.
-- Reframed urgency output as a prototype informational flag.
-- Kept generated analysis separate from retrieved information.
-- Improved the Streamlit submission flow with one form and clearer loading/error states.
-- Added provenance display in the drug-information section.
-- Added GitHub Actions checks for compile, regression tests, and evaluation.
-- Added an explicit architecture audit document.
-- Updated release identity to v1.1.
+- Added a lightweight normalized clinical-information model.
+- Added medication-exposure relationship extraction.
+- Added a prototype medication-related safety-signal layer.
+- Added explicit evidence/provenance objects.
+- Added input completeness/data-quality reporting.
+- Added an in-memory analysis trace with an analysis identifier.
+- Extended the Staff view to expose structured data and trace information.
+- Added a synthetic signal-evaluation dataset and evaluation script.
+- Preserved the existing urgency engine, EBM boundary, OpenFDA adapter, validation layer, and regression suite.
+- Updated release and architecture documentation.
 
-### Bugs fixed during development
+### Engineering boundary
 
-The first v1.1 test pass exposed a one-character drug-input validation gap. That was fixed before proceeding. The corrected branch then passed the full regression suite and existing evaluation workflow.
+The signal layer is intentionally a pattern detector. It does not infer that a drug caused an event, diagnose, prescribe, recommend treatment, or act as a clinical alerting system.
 
 ### Deliberately unchanged
 
-- Core urgency rules and their known regression fixes
+- Existing urgency rules and regression fixes
 - Cached EBM loading boundary
-- Existing response-engine structure
-- Existing evaluation fixture
-- Existing project identity
-- Small-project architecture
+- OpenFDA retrieval boundary
+- No-database architecture
+- No-authentication architecture
+- Small-project implementation style
 
 ### Deliberately not implemented
 
-- Database/authentication
-- Patient accounts or persistent records
-- Hospital/device integrations
-- Autonomous diagnosis
-- Production clinical workflows
-- Large AI/LLM features
-- Microservices or other premature infrastructure
+OMOP/FHIR implementation, patient records, authentication, hospital/device integrations, real-time alerting, autonomous diagnosis, large AI/LLM features, and production infrastructure.
 
-## Scope
+### Verification target
 
-MedFindr is an actively developed healthcare/pharmaceutical technology prototype exploring information discovery, informational flagging, structured data handling, and future workflow integration.
+The v1.2 candidate should pass Python compilation, regression tests, SignalGraph tests, urgency evaluation, synthetic signal evaluation, and GitHub Actions checks.
 
-It is not a certified medical device, clinically validated system, hospital-ready product, diagnostic system, or autonomous medical decision-maker.
+Evaluation fixtures are software-development tests, not clinical or pharmacovigilance validation.
 
-## Verification
+### Project authorship
 
-The development branch was checked after each significant implementation step. The final release candidate should pass:
-
-- Python compilation
-- application import when dependencies are installed
-- regression tests
-- rule-engine evaluation
-- GitHub Actions checks after promotion
-
-The evaluation set is a small software regression fixture, not clinical validation.
+MedFindr is a student-built project created by Pushkar Sable. External assistance is used selectively for debugging, research, review, and implementation support; the project concept, direction, scope decisions, and repository ownership remain the creator's.
