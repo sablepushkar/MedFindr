@@ -11,7 +11,7 @@
   },
   {
     "case_id": "RV-003",
-    "input": "headache",
+    "input": "taking a medicine",
     "expected_signal_status": "insufficient_context"
   }
 ]
