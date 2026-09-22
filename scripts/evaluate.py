@@ -3,18 +3,19 @@
 Usage:
     python scripts/evaluate.py
 """
-
 from __future__ import annotations
-
 import json
+import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from utils.urgency import assess_urgency
 
-ROOT = Path(__file__).parent.parent
 EVAL_PATH = ROOT / "data" / "evaluation_set.json"
 LABELS = ("low", "moderate", "high")
-
 
 def load_cases() -> list[dict]:
     if not EVAL_PATH.exists():
@@ -24,7 +25,6 @@ def load_cases() -> list[dict]:
     if not isinstance(data, list):
         raise ValueError("Evaluation set must contain a JSON list.")
     return data
-
 
 def evaluate(cases: list[dict]) -> tuple[list[dict], dict]:
     results = []
@@ -49,9 +49,7 @@ def evaluate(cases: list[dict]) -> tuple[list[dict], dict]:
         predicted = result["predicted"]
         if expected in confusion and predicted in LABELS:
             confusion[expected][predicted] += 1
-
     return results, confusion
-
 
 def print_report(results: list[dict], confusion: dict) -> None:
     total = len(results)
@@ -79,35 +77,22 @@ def print_report(results: list[dict], confusion: dict) -> None:
         support = sum(confusion[label].values())
         precision = true_positive / predicted_total if predicted_total else 0.0
         recall = true_positive / support if support else 0.0
-        print(
-            f"{label:<12}"
-            f"{precision * 100:>11.1f}%"
-            f"{recall * 100:>11.1f}%"
-            f"{support:>12}"
-        )
+        print(f"{label:<12}{precision * 100:>11.1f}%{recall * 100:>11.1f}%{support:>12}")
 
     failures = [item for item in results if not item["match"]]
     if failures:
         print("\nFailures")
         for item in failures:
-            print(
-                f"- {item['id']}: expected={item['expected']} "
-                f"predicted={item['predicted']} | {item['concern']}"
-            )
+            print(f"- {item['id']}: expected={item['expected']} predicted={item['predicted']} | {item['concern']}")
     else:
         print("\nAll labelled evaluation cases passed.")
 
-    print(
-        "\nNote: This evaluates the rule-based urgency engine only. "
-        "It is not clinical validation and does not establish medical safety or effectiveness."
-    )
-
+    print("\nNote: This evaluates the rule-based urgency engine only. "
+          "It is not clinical validation and does not establish medical safety or effectiveness.")
 
 def main() -> None:
-    cases = load_cases()
-    results, confusion = evaluate(cases)
+    results, confusion = evaluate(load_cases())
     print_report(results, confusion)
-
 
 if __name__ == "__main__":
     main()
