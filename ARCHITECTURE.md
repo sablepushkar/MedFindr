@@ -1,36 +1,211 @@
 # MedFindr v2 Architecture
 
 ## System boundary
-MedFindr v2 is a local/session-oriented information workflow: `input → validation → structure → quality → signals → evidence → review → export`.
 
-The application has no application database and no patient-account layer.
+MedFindr v2 is a local/session-oriented information workflow:
 
-## Core design
-### Structured information before intelligence
-The pipeline creates a normalized representation before later analysis stages.
-### Signals are not conclusions
-Urgency and medication-safety rules are prototype software signals. They do not establish diagnosis, causality, treatment need, or clinical severity.
-### Evidence carries provenance
-Evidence objects identify evidence type and source. Retrieved public-label information remains distinguishable from MedFindr-generated rule evidence.
-### Human review is explicit
-`ReviewRecord` captures review status, evidence reviewed, reasoning, missing information, follow-up requirement, follow-up notes, disposition, and review timestamp.
-### Export without persistence
-A review bundle can be downloaded as JSON. The export does not imply that MedFindr stores the record.
+```text
+Input
+  ↓
+Validation
+  ↓
+Structured clinical information
+  ↓
+Data quality
+  ↓
+Urgency + medication-safety signals
+  ↓
+Optional EBM
+  ↓
+Evidence / OpenFDA retrieval
+  ↓
+Structured result + development trace
+  ↓
+Human review
+  ↓
+JSON review bundle
+```
 
-## Data and privacy boundary
-The v2 prototype deliberately avoids patient identifiers and persistent clinical storage. It should not be described as an EHR, pharmacovigilance database, or compliance audit system.
+The architecture deliberately separates **information processing** from **human review**.
 
-If persistence is introduced later, authentication/authorization, encrypted storage, retention/deletion rules, access logging, privacy review, data minimization, and governance must be designed separately.
+## Core modules
 
-## Failure handling
-- validation errors stop analysis early
-- external retrieval failures remain isolated
-- unexpected UI pipeline errors are logged server-side and shown generically
-- review validation blocks incomplete follow-up records
-- export contains explicit limitations
+### `app.py`
+Presentation layer.
+
+Responsibilities:
+- collect bounded user input
+- trigger the analysis workflow
+- render structured results
+- expose technical details separately
+- collect review fields
+- provide JSON export
+
+The UI should remain thin. Business logic belongs in `utils/`.
+
+### `utils/response_engine.py`
+Primary orchestration layer.
+
+It coordinates validation, clinical extraction, data quality, urgency, safety signals, optional EBM, evidence, external retrieval, trace generation, and review-ready output.
+
+### `utils/clinical_data.py`
+Defines the normalized clinical-information representation.
+
+The current prototype focuses on a small set of structured concepts rather than attempting full clinical NLP.
+
+### `utils/data_quality.py`
+Assesses whether important contextual fields are present.
+
+Missing timing, severity, medication exposure, or other context can reduce interpretability. The application should surface those limitations instead of silently treating incomplete input as complete.
+
+### `utils/urgency.py`
+Contains the deterministic prototype urgency rules and regression-tested edge cases.
+
+### `utils/safety_signals.py`
+Produces medication-related software signals from structured information.
+
+A signal means that a defined pattern was detected. It does not establish causality.
+
+### `utils/ebm_risk.py`
+Optional Explainable Boosting Machine layer.
+
+The model is treated as an experimental/engineering component with fallback behaviour. Its output is not a clinical risk score.
+
+### `utils/evidence.py`
+Represents evidence and provenance.
+
+The abstraction keeps evidence separate from conclusions so new evidence adapters can be introduced later.
+
+### `utils/drug_lookup.py`
+Retrieves public OpenFDA drug-label information defensively.
+
+External responses are parsed into stable application structures and accompanied by provenance.
+
+### `utils/analysis_trace.py`
+Provides an in-memory development trace showing which stages were executed.
+
+It is intentionally **not** a compliance audit log.
+
+### `utils/review.py`
+Defines the human review record.
+
+The review record can capture:
+- status
+- evidence reviewed
+- reviewer reasoning
+- missing information
+- follow-up requirement
+- follow-up notes
+- disposition
+- completion timestamp
+
+### `utils/review_export.py`
+Serializes the review record into a JSON bundle for inspection or portfolio demonstration.
+
+## Data flow
+
+The application passes a structured response through the workflow instead of allowing each UI component to independently calculate results.
+
+This creates a predictable boundary:
+
+```text
+Raw input
+  → normalized input
+  → structured clinical information
+  → quality assessment
+  → prototype signals
+  → evidence
+  → review-ready response
+```
+
+## Evidence architecture
+
+Evidence objects are intentionally independent from the signal logic.
+
+This allows future adapters to represent:
+
+- public regulatory labels
+- literature records
+- pharmacovigilance datasets
+- institutional sources
+- validated internal datasets
+
+Each external source should preserve provenance such as source type, source URL, query/identifier, and retrieval time where available.
+
+## Human review boundary
+
+The v2 review layer is not an automated clinical decision-maker.
+
+The intended boundary is:
+
+```text
+Software
+  → structures information
+  → detects defined patterns
+  → presents evidence
+  → records limitations
+
+Human reviewer
+  → inspects information
+  → records reasoning
+  → requests follow-up
+  → records a disposition
+```
+
+The current application does not persist these records in a production database.
+
+## Security and privacy boundary
+
+Current v2 deliberately has:
+
+- no patient database
+- no persistent patient records
+- no production identity system
+- no patient identifier model
+- bounded input validation
+- defensive external requests
+- generic user-facing error handling
+- synthetic evaluation fixtures
+
+This is appropriate for a development-stage portfolio prototype, not a production healthcare deployment.
+
+A production system would require a materially different security architecture: identity and access management, encryption, secrets management, audit infrastructure, data retention controls, monitoring, threat modelling, incident response, and organization-specific governance.
+
+## Deliberate non-features
+
+MedFindr v2 does not claim to be:
+
+- a diagnostic engine
+- a pharmacovigilance validation platform
+- a causality-assessment system
+- a clinical alerting service
+- a treatment recommendation engine
+- a production patient-record system
+
+These boundaries are part of the engineering design.
 
 ## Verification
-CI compiles the repository, imports the application, runs regression tests, and executes synthetic evaluation scripts.
+
+The repository uses:
+- Python compilation checks
+- unit/regression tests
+- synthetic evaluation fixtures
+- application import smoke testing
+- GitHub Actions
+
+The verification suite demonstrates software behaviour against defined fixtures. It is not clinical validation.
 
 ## Extension points
-Terminology adapters, evidence source adapters, validated pharmacovigilance datasets, model benchmarking, secure persistence, institutional integrations, and device/event ingestion can be added behind the current module boundaries.
+
+The current architecture can later support:
+
+1. terminology mapping
+2. richer temporal/event modelling
+3. additional evidence adapters
+4. validated datasets and ML experiments
+5. institutional API adapters
+6. device/event adapters
+7. persistent review infrastructure
+8. authenticated multi-user deployment
+
+Any production-oriented extension should be introduced only with the required security, clinical, regulatory, and governance work.
