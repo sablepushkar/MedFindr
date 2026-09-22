@@ -29,7 +29,9 @@ The audit found the v1.2 pipeline functionally coherent, but identified several 
 - Updated the test-suite version wording from v1.1 to v1.2 while preserving the v1.1 regression coverage.
 - Tightened wording around public label retrieval and prototype safety signals.
 - Rechecked temporary/TODO/placeholder markers and found no unfinished implementation marker in production code. Remaining ExampleMedicine and example.test strings are confined to synthetic tests.
-- Re-ran compilation, regression tests, urgency evaluation, and SignalGraph evaluation after the refinements.
+- Restored the complete v1.1 regression suite after an audit edit briefly replaced it with a shortened file, then verified the restored suite from a clean clone.
+- Corrected the control-character regression test so its null-byte escape is represented safely in source code.
+- Re-ran the complete verification suite after all corrections.
 
 ### Engineering boundary
 
@@ -52,15 +54,18 @@ OMOP/FHIR implementation, patient records, authentication, hospital/device integ
 
 These additions would require separate requirements, validation, security controls, governance, and testing rather than being added merely to make the repository look larger.
 
-### Verification
+### Final verification
 
-Latest v1.2 development-branch verification:
+Latest clean v1.2 development-branch verification:
 
 - Python compilation: passed
 - Automated tests: 24/24 passed
 - Urgency evaluation: 15/15 labelled cases matched
 - SignalGraph evaluation: 8/8 synthetic cases matched
-- GitHub Actions pull-request workflow: successful on the audited pre-refinement v1.2 commit
+- Source-marker scan: no unfinished implementation markers found in production code
+- Stale user-facing v1.0/v1.1 product-version scan: clear
+- Git working tree from clean clone: clean
+- GitHub Actions: configured to rerun on the latest v1.2 commits
 
 These fixtures test software behavior only. They do not establish clinical safety, efficacy, pharmacovigilance performance, diagnostic accuracy, or generalization.
 
@@ -69,7 +74,8 @@ These fixtures test software behavior only. They do not establish clinical safet
 - v1.2-development contains the audited v1.2 candidate.
 - main remains the verified v1.1 baseline until the v1.2 pull request is deliberately merged.
 - Pull request #1 tracks the v1.2 promotion into main.
-- Repository metadata is being aligned to the current v1.2 scope during this audit.
+- Repository default branch is now main.
+- Repository description and topics are aligned with the v1.2 scope.
 
 ### Project authorship
 
