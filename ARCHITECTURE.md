@@ -6,16 +6,16 @@ MedFindr remains a single Python/Streamlit prototype. v1.2 adds a structured inf
 
 USER → UI → APPLICATION LOGIC → DATA/EVIDENCE → RESULT
 
-1. Streamlit collects a bounded concern and optional lookup term.
+1. Streamlit collects a bounded concern and optional public-label lookup term.
 2. The response engine validates and normalizes the request.
 3. Clinical information is extracted into a small structured model.
 4. Data quality reports present and missing information.
-5. The urgency engine generates a transparent prototype flag.
+5. The urgency engine generates a transparent prototype informational flag.
 6. The safety-signal layer checks configured medication-exposure patterns.
 7. The optional EBM layer provides explainable model output when available.
 8. Evidence objects keep generated rules distinct from external information.
 9. OpenFDA provides optional public label information with provenance.
-10. The analysis trace records the ordered software stages.
+10. The development trace records the ordered software stages in memory.
 11. Streamlit renders the structured result.
 
 ## SignalGraph data flow
@@ -38,7 +38,7 @@ Quality Urgency Safety    EBM
                    ↓
                Response
                    ↓
-             AnalysisTrace
+          Development Trace
 
 ## Key design choices
 
@@ -52,7 +52,7 @@ The safety layer uses explicit phrases and relationships. It uses terms such as 
 
 ### Provenance is attached to evidence
 
-Generated rule evidence identifies its rule source. Retrieved label information identifies source, endpoint, query, and retrieval time. These evidence classes remain distinct.
+Generated rule evidence identifies its rule source. Retrieved public label information identifies source, endpoint, query, and retrieval time. These evidence classes remain distinct.
 
 ### Trace without persistence
 

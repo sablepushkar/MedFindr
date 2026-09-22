@@ -1,25 +1,41 @@
 # MedFindr — Developer Notes
 
-## v1.2 — SignalGraph prototype
+## v1.2 — Final audit and SignalGraph refinement
 
 v1.2 builds on the v1.1 reliability foundation without replacing the working architecture.
 
-### Changes
+### v1.2 implementation
 
 - Added a lightweight normalized clinical-information model.
 - Added medication-exposure relationship extraction.
 - Added a prototype medication-related safety-signal layer.
 - Added explicit evidence/provenance objects.
 - Added input completeness/data-quality reporting.
-- Added an in-memory analysis trace with an analysis identifier.
-- Extended the Staff view to expose structured data and trace information.
-- Added a synthetic signal-evaluation dataset and evaluation script.
+- Added an in-memory development trace with a non-content-derived analysis identifier.
+- Extended the Technical view to expose structured data and development trace information.
+- Added a synthetic SignalGraph evaluation dataset and evaluation script.
 - Preserved the existing urgency engine, EBM boundary, OpenFDA adapter, validation layer, and regression suite.
-- Updated release and architecture documentation.
+
+### Final audit findings and refinements
+
+A repository-wide audit was performed against the v1.2 development branch, including repository structure, branches, recent commits, pull request state, workflow runs, core source modules, tests, evaluation scripts, configuration, requirements, and documentation.
+
+The audit found the v1.2 pipeline functionally coherent, but identified several quality issues worth correcting before treating the branch as a clean portfolio milestone:
+
+- Removed an awkward conditional-expression workaround from the response engine and replaced it with explicit StructuredResponse construction.
+- Replaced the deterministic hash-derived analysis identifier with a random short identifier so the trace identifier is not derived from supplied concern text.
+- Changed trace wording from “auditable” to “development trace” to avoid implying a compliance-grade audit log.
+- Changed UI labels from “Patient / Staff” to “General / Technical” because the prototype has no patient identity, authentication, or staff authorization model.
+- Updated the test-suite version wording from v1.1 to v1.2 while preserving the v1.1 regression coverage.
+- Tightened wording around public label retrieval and prototype safety signals.
+- Rechecked temporary/TODO/placeholder markers and found no unfinished implementation marker in production code. Remaining ExampleMedicine and example.test strings are confined to synthetic tests.
+- Re-ran compilation, regression tests, urgency evaluation, and SignalGraph evaluation after the refinements.
 
 ### Engineering boundary
 
-The signal layer is intentionally a pattern detector. It does not infer that a drug caused an event, diagnose, prescribe, recommend treatment, or act as a clinical alerting system.
+The SignalGraph layer is intentionally a pattern detector. It does not infer that a drug caused an event, diagnose, prescribe, recommend treatment, or act as a clinical alerting system.
+
+The development trace is intentionally in-memory. It is useful for understanding the software path during development but is not a compliant audit log and should not be presented as one.
 
 ### Deliberately unchanged
 
@@ -34,12 +50,27 @@ The signal layer is intentionally a pattern detector. It does not infer that a d
 
 OMOP/FHIR implementation, patient records, authentication, hospital/device integrations, real-time alerting, autonomous diagnosis, large AI/LLM features, and production infrastructure.
 
-### Verification target
+These additions would require separate requirements, validation, security controls, governance, and testing rather than being added merely to make the repository look larger.
 
-The v1.2 candidate should pass Python compilation, regression tests, SignalGraph tests, urgency evaluation, synthetic signal evaluation, and GitHub Actions checks.
+### Verification
 
-Evaluation fixtures are software-development tests, not clinical or pharmacovigilance validation.
+Latest v1.2 development-branch verification:
+
+- Python compilation: passed
+- Automated tests: 24/24 passed
+- Urgency evaluation: 15/15 labelled cases matched
+- SignalGraph evaluation: 8/8 synthetic cases matched
+- GitHub Actions pull-request workflow: successful on the audited pre-refinement v1.2 commit
+
+These fixtures test software behavior only. They do not establish clinical safety, efficacy, pharmacovigilance performance, diagnostic accuracy, or generalization.
+
+### Repository state
+
+- v1.2-development contains the audited v1.2 candidate.
+- main remains the verified v1.1 baseline until the v1.2 pull request is deliberately merged.
+- Pull request #1 tracks the v1.2 promotion into main.
+- Repository metadata is being aligned to the current v1.2 scope during this audit.
 
 ### Project authorship
 
-MedFindr is a student-built project created by Pushkar Sable. External assistance is used selectively for debugging, research, review, and implementation support; the project concept, direction, scope decisions, and repository ownership remain the creator's.
+MedFindr is a student-built project created and directed by Pushkar Sable. External assistance is used selectively for debugging, research, review, and implementation support; the project concept, direction, scope decisions, repository ownership, and final acceptance decisions remain with the creator.

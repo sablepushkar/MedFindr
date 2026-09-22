@@ -8,7 +8,7 @@ MedFindr is an actively developed healthcare/pharmaceutical technology prototype
 
 **v1.2 — SignalGraph prototype**
 
-v1.2 adds a focused information-engineering layer rather than a generic chatbot. The prototype converts supplied text into structured findings, evaluates medication-related information patterns, attaches evidence/provenance objects, reports input completeness, and records an ordered analysis trace.
+v1.2 adds a focused information-engineering layer rather than a generic chatbot. The prototype converts supplied text into structured findings, evaluates medication-related information patterns, attaches evidence/provenance objects, reports input completeness, and records an in-memory development trace.
 
 ### Current workflow
 
@@ -28,7 +28,7 @@ It currently represents:
 - prototype medication-related safety signals
 - evidence/provenance objects
 - input completeness indicators
-- ordered analysis stages
+- ordered development stages
 
 A safety signal means an information pattern worth review by the prototype. It does not mean that a medicine caused an adverse event and does not establish diagnosis, treatment, or clinical risk.
 
@@ -40,11 +40,11 @@ A safety signal means an information pattern worth review by the prototype. It d
 - Medication-related safety-signal pattern detection
 - Evidence objects separating generated signals from retrieved information
 - Data-quality/completeness indicator
-- In-memory analysis trace with generated analysis identifier
+- In-memory development trace with generated analysis identifier
 - Optional Explainable Boosting Machine layer with explicit fallback
-- OpenFDA label retrieval with timeout/error handling and source provenance
-- Patient and Staff UI modes
-- Synthetic signal evaluation fixture
+- OpenFDA public label retrieval with timeout/error handling and source provenance
+- General and Technical UI modes
+- Synthetic SignalGraph evaluation fixture
 - Existing urgency evaluation with confusion matrix and per-class metrics
 - Automated regression checks through GitHub Actions
 
@@ -60,9 +60,9 @@ Signal layer: utils/safety_signals.py detects configured medication-exposure pat
 
 Evidence layer: utils/evidence.py represents both MedFindr-generated rule evidence and externally retrieved label information.
 
-External data: utils/drug_lookup.py isolates OpenFDA label retrieval and attaches source metadata.
+External data: utils/drug_lookup.py isolates OpenFDA public label retrieval and attaches source metadata.
 
-Trace: utils/analysis_trace.py records ordered software stages. It is an in-memory development trace, not a compliant audit log.
+Trace: utils/analysis_trace.py records ordered software stages in memory. It is a development trace, not a compliant audit log.
 
 ## Technologies
 
@@ -100,9 +100,11 @@ Evaluations:
 
 ## Medical/pharma scope
 
-MedFindr separates retrieved information from prototype analysis.
+MedFindr separates retrieved public label information from prototype analysis.
 
 The safety-signal layer is a software-pattern detector for development and portfolio demonstration. It is not pharmacovigilance validation, adverse-event causality assessment, diagnostic reasoning, medical advice, or a clinical alert system.
+
+The OpenFDA adapter is used as a public information source. OpenFDA states that its data should not be relied on for medical-care decisions and that results may be unvalidated; MedFindr therefore presents retrieved label information separately from generated prototype signals.
 
 ## Deliberate non-features
 
