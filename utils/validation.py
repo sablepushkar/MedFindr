@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 MAX_CONCERN_LENGTH = 2000
 MAX_DRUG_NAME_LENGTH = 120
+MIN_DRUG_NAME_LENGTH = 2
 _CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 
 
@@ -38,6 +39,8 @@ def validate_drug_name(value: object) -> ValidationResult:
     text = _clean(value)
     if not text:
         return ValidationResult("")
+    if len(text) < MIN_DRUG_NAME_LENGTH:
+        return ValidationResult("", f"Drug name must contain at least {MIN_DRUG_NAME_LENGTH} characters.")
     if len(text) > MAX_DRUG_NAME_LENGTH:
         return ValidationResult("", f"Drug name is too long. Keep it under {MAX_DRUG_NAME_LENGTH} characters.")
     return ValidationResult(text)

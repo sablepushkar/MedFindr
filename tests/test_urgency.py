@@ -34,6 +34,10 @@ class ValidationTests(unittest.TestCase):
         result = validate_drug_name("x" * 121)
         self.assertFalse(result.valid)
 
+    def test_drug_name_minimum_length_is_enforced(self):
+        result = validate_drug_name("x")
+        self.assertFalse(result.valid)
+
 
 class UrgencyRegressionTests(unittest.TestCase):
     @classmethod
