@@ -1,35 +1,68 @@
 # MedFindr — Developer Notes
 
-## X1.2 — Consolidated working release
+## v1.1 — Reliability and architecture foundation
 
-X1.2 consolidates the verified development work onto the main branch. The release is based on the known-good X1.0+ baseline and incorporates the useful efficiency refinements from the interrupted main-branch work without carrying forward its temporary corrupted states.
+v1.1 is the result of a repository audit followed by incremental reliability, data-flow, UX, provenance, and testing improvements.
 
-### Engineering changes
+### Audit conclusion
 
-- Urgency patterns are normalized once per request.
-- Duplicate urgency reasons are prevented.
-- Known evaluation edge cases are covered by explicit regression rules/tests.
-- EBM model loading is cached after its first attempt.
-- The response engine keeps urgency, EBM, and drug lookup as separate layers.
-- The Streamlit UI remains a presentation layer over the testable pipeline.
-- The evaluation script is runnable from the repository root.
-- Release metadata and documentation identify X1.2 consistently.
+MedFindr is currently a single Python/Streamlit prototype. It has no database, authentication layer, or separate backend service. The working flow is:
 
-### Verification state
+USER → Streamlit UI → validation → response engine → rule/model layers + external data retrieval → structured result.
 
-The bundled regression/evaluation workflow was checked during the X1.2 consolidation. The current labelled evaluation set passes its expected urgency labels, and the Python modules were compile-checked.
+The existing modular implementation was retained rather than rewritten.
 
-The evaluation set is a small software regression fixture. Its results do not establish clinical safety, diagnostic accuracy, or treatment effectiveness.
+### Changes
 
-## Recovered branch history
+- Added bounded and normalized input validation.
+- Added defensive external-response parsing.
+- Added stable API error handling without exposing raw exception details.
+- Added source provenance metadata to retrieved external records.
+- Reframed urgency output as a prototype informational flag.
+- Kept generated analysis separate from retrieved information.
+- Improved the Streamlit submission flow with one form and clearer loading/error states.
+- Added provenance display in the drug-information section.
+- Added GitHub Actions checks for compile, regression tests, and evaluation.
+- Added an explicit architecture audit document.
+- Updated release identity to v1.1.
 
-- 470031a — verified X1.0+ baseline.
-- v2-development — controlled repair/development branch.
-- 49245e5 — final verified V2 tip before X1.2 promotion.
-- main — consolidated X1.2 working branch.
+### Bugs fixed during development
 
-The older interrupted commits remain in Git history for traceability and were not treated as a source of production behaviour.
+The first v1.1 test pass exposed a one-character drug-input validation gap. That was fixed before proceeding. The corrected branch then passed the full regression suite and existing evaluation workflow.
 
-## Portfolio engineering rule
+### Deliberately unchanged
 
-MedFindr is a portfolio prototype, not a clinical decision system. Medical, drug, or workflow claims must remain auditable, clearly scoped, and backed by explicit data sources. Future features should be introduced as small independently testable changes rather than large unverified rewrites.
+- Core urgency rules and their known regression fixes
+- Cached EBM loading boundary
+- Existing response-engine structure
+- Existing evaluation fixture
+- Existing project identity
+- Small-project architecture
+
+### Deliberately not implemented
+
+- Database/authentication
+- Patient accounts or persistent records
+- Hospital/device integrations
+- Autonomous diagnosis
+- Production clinical workflows
+- Large AI/LLM features
+- Microservices or other premature infrastructure
+
+## Scope
+
+MedFindr is an actively developed healthcare/pharmaceutical technology prototype exploring information discovery, informational flagging, structured data handling, and future workflow integration.
+
+It is not a certified medical device, clinically validated system, hospital-ready product, diagnostic system, or autonomous medical decision-maker.
+
+## Verification
+
+The development branch was checked after each significant implementation step. The final release candidate should pass:
+
+- Python compilation
+- application import when dependencies are installed
+- regression tests
+- rule-engine evaluation
+- GitHub Actions checks after promotion
+
+The evaluation set is a small software regression fixture, not clinical validation.

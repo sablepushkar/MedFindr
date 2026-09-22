@@ -1,67 +1,132 @@
-# MedFindr X1.2
+# MedFindr v1.1
 
-MedFindr is a focused med × pharma portfolio prototype built around a simple, auditable workflow: turn a free-text health concern into a structured response, expose the rule-based urgency signals that were matched, optionally surface an explainable-model layer, and retrieve basic drug-label information from OpenFDA.
+**Med × Pharma × Data × Technology**
 
-> Status: X1.2 — consolidated working release
+MedFindr is an actively developed healthcare/pharmaceutical technology prototype exploring medical information discovery, transparent informational flagging, structured data handling, and future integration with healthcare and pharma workflows.
 
-## What X1.2 includes
+## Current status
 
-- Structured response pipeline with separated, testable components
-- Transparent rule-based urgency / red-flag layer
-- Explainable Boosting Machine integration with a clearly labelled fallback when no trained model is present
-- Basic OpenFDA drug-label lookup
-- Patient and Staff presentation modes
-- Sample concern workflow
-- Regression tests for existing urgency behaviour
-- Evaluation reporting with confusion matrix and per-class metrics
-- Executable evaluation script from the repository root
-- Cached EBM model loading
-- Explicit prototype/non-clinical boundaries
+**v1.1 — reliability and architecture foundation**
+
+The current release focuses on making the existing prototype dependable and understandable rather than adding a large number of unfinished features.
+
+### Current workflow
+
+USER → STREAMLIT UI → INPUT VALIDATION → RESPONSE ENGINE → PROTOTYPE FLAG / OPTIONAL EBM / OPENFDA RETRIEVAL → STRUCTURED RESPONSE + PROVENANCE
+
+The repository currently has **no application database, user-authentication system, or separate backend service**. That is deliberate at this stage: the prototype keeps its architecture small while leaving clean boundaries for future data and API integrations.
+
+## What works now
+
+- Free-text concern input with bounded validation
+- Transparent rule-based prototype informational flags
+- Regression-tested urgency behaviour
+- Optional Explainable Boosting Machine layer with explicit fallback status
+- Structured response objects separating application logic from presentation
+- OpenFDA label retrieval with timeout/error handling and source provenance
+- Patient and Staff UI modes
+- Sample-concern workflow
+- Evaluation script with confusion matrix and per-class metrics
+- Automated regression checks through GitHub Actions
+- Central configuration with no application secrets hard-coded in source
 
 ## Architecture
 
-- app.py — Streamlit presentation layer
-- config.py — central configuration and release metadata
-- utils/urgency.py — transparent rule-based urgency engine
-- utils/ebm_risk.py — optional explainable model layer
-- utils/response_engine.py — response orchestration
-- utils/drug_lookup.py — OpenFDA label lookup
-- data/ — evaluation and sample fixtures
-- scripts/evaluate.py — evaluation report
-- scripts/train_ebm.py — optional model training workflow
-- tests/ — regression and contract tests
-- DEVELOPERS_NOTES.md — engineering history and decisions
+### Presentation
+app.py contains the Streamlit interface only. It collects input, provides loading/error feedback, and renders structured results.
+
+### Application logic
+utils/response_engine.py orchestrates the workflow without embedding presentation code.
+
+### Prototype flagging
+utils/urgency.py contains the transparent rule layer. A flag is an informational prototype output, not a clinical conclusion.
+
+### Model extension point
+utils/ebm_risk.py can load a compatible trained model artifact. If none is available, the application uses a clearly labelled fallback rather than pretending a trained model exists.
+
+### External data
+utils/drug_lookup.py isolates external label retrieval and attaches provenance metadata to returned records. External information is kept distinct from system-generated analysis.
+
+### Data fixtures
+data/ contains the small evaluation and sample fixtures used by the prototype.
+
+## Technologies
+
+- Python
+- Streamlit
+- Requests
+- pandas / NumPy
+- scikit-learn
+- InterpretML
+- joblib
+- GitHub Actions for automated checks
 
 ## Run locally
 
-Install dependencies with: pip install -r requirements.txt
+    python -m pip install -r requirements.txt
+    streamlit run app.py
 
-Start the app with: streamlit run app.py
+Run the regression suite:
 
-Run regression tests with: python -m unittest discover -s tests -v
+    python -m unittest discover -s tests -v
 
-Run the evaluation report with: python scripts/evaluate.py
+Run the rule-engine evaluation:
 
-## Design principles
+    python scripts/evaluate.py
 
-1. Auditable before clever: rule matches and model status are exposed.
-2. Small, testable modules: the UI stays thin and the response pipeline is independently testable.
-3. Evidence-aware: drug information is retrieved from the configured OpenFDA label endpoint.
-4. No clinical overclaiming: software evaluation results are not clinical validation.
-5. Portfolio-ready progression: future features can extend the architecture without rewriting the core.
+## Security and data handling
 
-## Current scope and limitations
+- Application secrets are not stored in source code.
+- .env and Streamlit secrets files are ignored by Git.
+- User input is bounded and normalized before analysis.
+- External API failures are handled without exposing raw exception details to the UI.
+- No patient database or persistent health record store is currently implemented.
 
-The urgency engine is a small keyword/rule prototype. The bundled evaluation set is intentionally limited and must not be interpreted as evidence of clinical accuracy. The EBM layer only becomes a trained model when the optional training workflow produces the expected artifact; otherwise the application clearly identifies its fallback behaviour.
+## Medical/pharma scope
 
-## Roadmap
+MedFindr distinguishes between:
 
-X1.3: stronger evidence/source metadata and improved evaluation coverage.
+**Retrieved information** — external data returned by a configured source and shown with provenance.
 
-X2: auditable medication-safety and interaction workflows using explicit datasets, with expanded automated testing.
+**Prototype analysis** — rule/model outputs generated by the application and explicitly labelled as such.
 
-Future: deployment hardening, richer provenance, broader datasets, model monitoring, and portfolio-grade engineering documentation.
+The current rule engine and small evaluation set are software-development fixtures. Their results are **not clinical validation** and do not establish diagnostic accuracy, medical safety, or treatment effectiveness.
 
-## Portfolio note
+## Future development
 
-This repository is maintained as a student-built portfolio project and should be evaluated as a software prototype rather than a medical product.
+### V2
+
+- richer medical/pharma datasets
+- stronger search and structured information retrieval
+- expanded evaluation coverage
+- improved informational flagging logic
+- provenance and evidence metadata
+- controlled AI/ML experimentation
+- additional external API integrations
+- analytics built around non-sensitive, structured data
+
+### V3 research direction
+
+Potential future exploration includes biomedical/bioinformatics data, pharmacovigilance research workflows, pharmacological relationships, institutional APIs, device/event inputs, real-time alert pipelines, and research-oriented analytics.
+
+### Long-term portfolio direction
+
+Potential research areas include AI-assisted drug discovery, biomedical knowledge graphs, clinical decision-support research, predictive modelling, bioinformatics pipelines, and healthcare/pharma workflow integration.
+
+These are future directions, not current capabilities.
+
+## Limitations
+
+- The urgency layer is a small keyword/rule prototype.
+- The bundled evaluation set is intentionally small.
+- The optional EBM workflow currently trains on synthetic development data; that is not a clinical dataset.
+- No authentication, database, patient-record persistence, institutional integration, or production deployment is implemented.
+- External source availability can affect retrieved-information features.
+
+## Development principle
+
+Build the foundation, not the fantasy:
+
+**inspect → plan → modify → test → fix → retest**
+
+The project should remain a serious student-built healthcare/pharma technology prototype, not a simulated commercial medical platform.
