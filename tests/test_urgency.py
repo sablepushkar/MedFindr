@@ -1,4 +1,4 @@
-"""Regression and contract tests for MedFindr v1.1."""
+"""Regression and contract tests for the MedFindr v1.2 prototype."""
 
 from __future__ import annotations
 

@@ -1,0 +1,10 @@
+[
+  {"id":"signal_001","concern":"rash and fever after taking a new medicine","drug_name":"ExampleMedicine","expected_status":"flagged"},
+  {"id":"signal_002","concern":"shortness of breath after starting a new medicine","drug_name":"ExampleMedicine","expected_status":"flagged"},
+  {"id":"signal_003","concern":"rash while using a medicine","drug_name":"ExampleMedicine","expected_status":"context_incomplete"},
+  {"id":"signal_004","concern":"headache for one day","drug_name":"","expected_status":"not_assessed"},
+  {"id":"signal_005","concern":"mild nausea after eating","drug_name":"ExampleMedicine","expected_status":"insufficient_context"},
+  {"id":"signal_006","concern":"fever after medication","drug_name":"ExampleMedicine","expected_status":"flagged"},
+  {"id":"signal_007","concern":"swelling after taking a new medicine","drug_name":"ExampleMedicine","expected_status":"flagged"},
+  {"id":"signal_008","concern":"medicine listed in history; current headache unrelated","drug_name":"ExampleMedicine","expected_status":"context_incomplete"}
+]
