@@ -1,4 +1,4 @@
-# MedFindr v1.1 — Architecture Audit
+# MedFindr X2 — Architecture Audit
 
 ## Current system boundary
 
@@ -28,7 +28,7 @@ MedFindr is currently a single Python/Streamlit prototype. It is not a full-stac
 - Regression/evaluation tooling
 - Existing evaluation edge-case fixes
 
-### Improved in v1.1
+### X2 stabilization and retained improvements
 
 - Bounded input validation
 - Defensive parsing of external API responses
@@ -37,7 +37,7 @@ MedFindr is currently a single Python/Streamlit prototype. It is not a full-stac
 - Explicit distinction between informational flags and retrieved data
 - Form-based submission to reduce accidental repeated actions
 - Mobile-friendly centered layout and full-width primary action
-- Staff-only technical detail remains opt-in
+- Technical model details are available to all users; the view is not access-controlled
 - Automated regression workflow
 - Clear architecture and scope documentation
 
