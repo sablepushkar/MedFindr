@@ -27,7 +27,9 @@ def _truncate(text: str, limit: int = 350) -> str:
     text = str(text or "").strip()
     if len(text) <= limit:
         return text
-    return text[:limit].rsplit(" ", 1)[0] + "..."
+    prefix = text[:limit]
+    boundary = prefix.rfind(" ")
+    return (prefix[:boundary] if boundary > 0 else prefix) + "..."
 
 
 def _provenance(query: str) -> dict[str, str]:

@@ -18,6 +18,9 @@ class UrgencyResult:
 HIGH_FLAGS: List[Tuple[str, str]] = [
     ("chest pain", "Chest pain reported"),
     ("difficulty breathing", "Difficulty breathing / shortness of breath"),
+    ("cannot breathe", "Difficulty breathing / shortness of breath"),
+    ("can't breathe", "Difficulty breathing / shortness of breath"),
+    ("unable to breathe", "Difficulty breathing / shortness of breath"),
     ("shortness of breath", "Shortness of breath"),
     ("severe chest", "Severe chest symptoms"),
     ("unconscious", "Loss of consciousness mentioned"),
@@ -48,20 +51,39 @@ MODERATE_FLAGS: List[Tuple[str, str]] = [
     ("pregnant", "Pregnancy mentioned – extra caution"),
 ]
 LOW_SIGNAL_SWELLING_CONTEXTS = ("after standing all day", "after standing for a long time", "after prolonged standing")
+_NEGATION_PREFIXES = ("negative for", "without", "denies", "denied", "no", "not", "free of")
+
+
+def _has_positive_phrase(text: str, phrase: str) -> bool:
+    """Match a flag unless a simple, directly preceding negation is present.
+
+    This deliberately handles only clear local negations; it is not clinical
+    natural-language understanding and must not be treated as a rule-out tool.
+    """
+    start = 0
+    while True:
+        index = text.find(phrase, start)
+        if index < 0:
+            return False
+        prefix = text[:index].rstrip()
+        if not any(prefix.endswith(token) and (len(prefix) == len(token) or prefix[-len(token)-1].isspace()) for token in _NEGATION_PREFIXES):
+            return True
+        start = index + len(phrase)
+
 
 def assess_urgency(text: str) -> UrgencyResult:
     if not text or not text.strip():
         return UrgencyResult("low", 0, ["No concern text provided"], "Please describe the health concern.")
     lower=text.lower().strip(); score=0; reasons=[]
     for pattern,reason in HIGH_FLAGS:
-        if pattern in lower:
+        if _has_positive_phrase(lower, pattern):
             score+=10
             if reason not in reasons: reasons.append(reason)
-    if "fever" in lower and "rash" in lower and ("severe headache" in lower or "worst headache" in lower or ("headache" in lower and "severe" in lower)):
+    if _has_positive_phrase(lower, "fever") and _has_positive_phrase(lower, "rash") and (_has_positive_phrase(lower, "severe headache") or _has_positive_phrase(lower, "worst headache") or (_has_positive_phrase(lower, "headache") and _has_positive_phrase(lower, "severe"))):
         score+=10
         reason="Fever, rash, and severe headache combination detected"
         if reason not in reasons: reasons.append(reason)
-    matched_patterns = {pattern for pattern, _ in MODERATE_FLAGS if pattern in lower}
+    matched_patterns = {pattern for pattern, _ in MODERATE_FLAGS if _has_positive_phrase(lower, pattern)}
     moderate_matches = []
     for pattern, reason in MODERATE_FLAGS:
         if pattern not in matched_patterns:

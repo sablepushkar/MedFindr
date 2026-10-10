@@ -16,6 +16,10 @@ class EvaluationWorkflowTests(unittest.TestCase):
         self.assertEqual(report["accuracy_percent"], 100.0)
         self.assertEqual(report["per_class"]["high"]["support"], 1)
 
+    def test_empty_evaluation_set_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "must not be empty"):
+            evaluate([])
+
     def test_unknown_expected_label_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "unknown expected_urgency"):
             evaluate([{"id": "bad", "concern": "some concern", "expected_urgency": "urgent"}])

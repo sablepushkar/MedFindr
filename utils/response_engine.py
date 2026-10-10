@@ -91,10 +91,11 @@ def build_response(
             f"{key}: {value:.2f}"
             for key, value in ebm.local_contribution.items()
         )
+        is_placeholder = ebm.model_status != "loaded"
         sections.append(
             Section(
-                "3. Explainable Risk Assessment",
-                ebm.summary,
+                "3. Experimental Model Output (Fallback)" if is_placeholder else "3. Explainable Risk Assessment",
+                f"{ebm.summary} {ebm.note}".strip() if is_placeholder else ebm.summary,
                 ebm.risk_level,
                 factors,
             )

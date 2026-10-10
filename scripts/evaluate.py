@@ -37,6 +37,8 @@ def evaluate(cases: list[dict]) -> tuple[list[dict], dict]:
     """Evaluate cases and reject malformed labels rather than hiding bad fixtures."""
     if not isinstance(cases, list):
         raise ValueError("Evaluation cases must be a list.")
+    if not cases:
+        raise ValueError("Evaluation cases must not be empty.")
     results = []
     seen_ids = set()
     for index, item in enumerate(cases):

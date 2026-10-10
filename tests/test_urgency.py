@@ -62,6 +62,16 @@ class UrgencyRegressionTests(unittest.TestCase):
         self.assertEqual(result.score, 0)
         self.assertTrue(result.reasons)
 
+    def test_clear_negated_high_flags_do_not_count_as_positive(self):
+        for concern in ("no chest pain", "denies difficulty breathing", "without chest pain"):
+            with self.subTest(concern=concern):
+                self.assertNotEqual(assess_urgency(concern).level, "high")
+
+    def test_alternate_breathing_emergency_phrasing_is_flagged(self):
+        for concern in ("cannot breathe", "can't breathe", "unable to breathe"):
+            with self.subTest(concern=concern):
+                self.assertEqual(assess_urgency(concern).level, "high")
+
     def test_high_flag_produces_high_urgency(self):
         result = assess_urgency("sudden chest pain")
         self.assertEqual(result.level, "high")
@@ -85,6 +95,13 @@ class UrgencyRegressionTests(unittest.TestCase):
 
 
 class DrugLookupTests(unittest.TestCase):
+    def test_long_unbroken_label_text_is_not_lost(self):
+        from utils.drug_lookup import _truncate
+        result = _truncate("x" * 400, limit=350)
+        self.assertTrue(result.startswith("x" * 20))
+        self.assertTrue(result.endswith("..."))
+        self.assertGreater(len(result), 350)
+
     def test_short_drug_name_is_rejected_without_network(self):
         with patch("utils.drug_lookup.requests.get") as mock_get:
             result = search_drug("x")
@@ -142,6 +159,12 @@ class ResponseEngineTests(unittest.TestCase):
         response = build_response(" ")
         self.assertTrue(response.errors)
         self.assertEqual(response.sections[0].level, "error")
+
+    def test_placeholder_model_output_is_clearly_labelled(self):
+        response = build_response("headache")
+        model_section = next(section for section in response.sections if "Model Output" in section.title or "Risk Assessment" in section.title)
+        self.assertIn("Fallback", model_section.title)
+        self.assertIn("Placeholder only", model_section.content)
 
     def test_response_can_disable_ebm(self):
         response = build_response("headache", include_ebm=False)

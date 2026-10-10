@@ -99,8 +99,8 @@ def render_structured_response(response: Any, view_mode: str) -> None:
         for error in response.errors:
             st.markdown(f"- {error}")
 
-    if view_mode == "staff" and response.ebm is not None:
-        with st.expander("Technical detail (Staff)"):
+    if view_mode == "technical" and response.ebm is not None:
+        with st.expander("Technical model detail"):
             st.json(response.ebm.to_dict())
 
     st.markdown("### Scope and provenance")
@@ -121,9 +121,9 @@ def main() -> None:
 
     view_mode = st.radio(
         "View mode",
-        ["Patient", "Staff"],
+        ["Patient", "Technical"],
         horizontal=True,
-        help="Staff view exposes additional technical model details.",
+        help="Technical view exposes additional model details and is not access-controlled.",
     ).lower()
 
     samples = load_sample_concerns()

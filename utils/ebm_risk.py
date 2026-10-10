@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 from config import EBM_MODEL_PATH
 logger=logging.getLogger(__name__)
-_model_cache=None; _model_checked=False
+_model_cache: dict[str, Any] = {}
 @dataclass
 class EBMExplanation:
     risk_level:str; risk_score:float; summary:str
@@ -19,18 +19,22 @@ def _placeholder_assess(urgency_level:str)->EBMExplanation:
     if urgency_level=="high": return EBMExplanation("high",0.84,"Elevated risk signals detected by the prototype rule layer.",["High-priority urgency pattern matched","Language indicating potential severity"],{"high_urgency_keywords":0.58,"severity_language":0.26},"placeholder","Placeholder only. Run scripts/train_ebm.py to create a trained model.")
     if urgency_level=="moderate": return EBMExplanation("moderate",0.47,"Moderate concern indicators detected by the prototype rule layer.",["Moderate concern pattern matched","No high-priority rule was matched"],{"moderate_keywords":0.33,"contextual_signals":0.14},"placeholder","Placeholder only. Run scripts/train_ebm.py to create a trained model.")
     return EBMExplanation("low",0.16,"No strong concern pattern was detected by the prototype rule layer.",["No high-priority or moderate concern pattern matched"],{"baseline":0.16},"placeholder","Placeholder only. Run scripts/train_ebm.py to create a trained model.")
-def load_ebm_model(model_path:Path=EBM_MODEL_PATH):
-    global _model_cache,_model_checked
-    if _model_checked: return _model_cache
-    _model_checked=True
+def load_ebm_model(model_path: Path = EBM_MODEL_PATH):
+    """Load each configured model path at most once per process."""
+    key = str(Path(model_path).expanduser().resolve())
+    if key in _model_cache:
+        return _model_cache[key]
+    if not Path(key).exists():
+        return None
     try:
-        if model_path.exists():
-            import joblib
-            _model_cache=joblib.load(model_path); logger.info("EBM model loaded from %s",model_path)
-        else: _model_cache=None
+        import joblib
+        model = joblib.load(key)
     except Exception as exc:
-        logger.warning("Could not load EBM model: %s",exc); _model_cache=None
-    return _model_cache
+        logger.warning("Could not load EBM model from %s: %s", key, exc)
+        return None
+    logger.info("EBM model loaded from %s", key)
+    _model_cache[key] = model
+    return model
 def extract_features(text:str)->Dict[str,int]:
     t=(text or "").lower()
     return {"has_chest_pain":int("chest pain" in t or "chest" in t),"has_breathing":int("breath" in t or "dyspnea" in t or "shortness" in t),"has_fever":int("fever" in t),"has_severe":int("severe" in t or "worst" in t or "intense" in t),"has_neuro":int("weakness" in t or "stroke" in t or "one side" in t or "numb" in t),"has_bleeding":int("bleed" in t or "blood" in t),"has_vomit":int("vomit" in t),"has_dizziness":int("dizzy" in t or "dizziness" in t or "vertigo" in t),"duration_days":3,"text_length":min(len(t.split()),50)}
