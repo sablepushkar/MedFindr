@@ -1,68 +1,30 @@
 # MedFindr — Developer Notes
 
-## v1.1 — Reliability and architecture foundation
+## VERSION X1 — rule reliability and portfolio cleanup
 
-v1.1 is the result of a repository audit followed by incremental reliability, data-flow, UX, provenance, and testing improvements.
+I kept the current Streamlit → response-engine architecture. It is small enough to understand end to end, and there is no reason to add a database or service layer just to make the project look bigger.
 
-### Audit conclusion
+### Work in this update
 
-MedFindr is currently a single Python/Streamlit prototype. It has no database, authentication layer, or separate backend service. The working flow is:
+- Review the rule-scoring behavior where a specific phrase also contains a general phrase (for example, `high fever` contains `fever`).
+- Count a matched concept once when a longer, more specific phrase already represents it.
+- Add regression tests for those overlaps so the score does not rise just because the wording is more specific.
+- Re-state the actual runtime and data boundaries in the README.
 
-USER → Streamlit UI → validation → response engine → rule/model layers + external data retrieval → structured result.
+### Existing flow retained
 
-The existing modular implementation was retained rather than rewritten.
+`app.py` collects the input and renders the response. `utils/validation.py` bounds input. `utils/response_engine.py` orchestrates the modules. `utils/urgency.py` contains the transparent rule layer. `utils/drug_lookup.py` handles public label retrieval and provenance. The optional EBM path remains explicitly optional.
 
-### Changes
+### Verification to run before promotion
 
-- Added bounded and normalized input validation.
-- Added defensive external-response parsing.
-- Added stable API error handling without exposing raw exception details.
-- Added source provenance metadata to retrieved external records.
-- Reframed urgency output as a prototype informational flag.
-- Kept generated analysis separate from retrieved information.
-- Improved the Streamlit submission flow with one form and clearer loading/error states.
-- Added provenance display in the drug-information section.
-- Added GitHub Actions checks for compile, regression tests, and evaluation.
-- Added an explicit architecture audit document.
-- Updated release identity to v1.1.
+```bash
+python -m unittest discover -s tests -v
+python scripts/evaluate.py
+python -m compileall -q .
+```
 
-### Bugs fixed during development
+Do not mark the update as tested until those commands and the GitHub Actions workflow have actually completed successfully.
 
-The first v1.1 test pass exposed a one-character drug-input validation gap. That was fixed before proceeding. The corrected branch then passed the full regression suite and existing evaluation workflow.
+### Not part of X1
 
-### Deliberately unchanged
-
-- Core urgency rules and their known regression fixes
-- Cached EBM loading boundary
-- Existing response-engine structure
-- Existing evaluation fixture
-- Existing project identity
-- Small-project architecture
-
-### Deliberately not implemented
-
-- Database/authentication
-- Patient accounts or persistent records
-- Hospital/device integrations
-- Autonomous diagnosis
-- Production clinical workflows
-- Large AI/LLM features
-- Microservices or other premature infrastructure
-
-## Scope
-
-MedFindr is an actively developed healthcare/pharmaceutical technology prototype exploring information discovery, informational flagging, structured data handling, and future workflow integration.
-
-It is not a certified medical device, clinically validated system, hospital-ready product, diagnostic system, or autonomous medical decision-maker.
-
-## Verification
-
-The development branch was checked after each significant implementation step. The final release candidate should pass:
-
-- Python compilation
-- application import when dependencies are installed
-- regression tests
-- rule-engine evaluation
-- GitHub Actions checks after promotion
-
-The evaluation set is a small software regression fixture, not clinical validation.
+No clinical claims, patient accounts, patient-record database, authentication, real hospital integration, or production triage capability is being added. Synthetic fixtures remain software tests only.

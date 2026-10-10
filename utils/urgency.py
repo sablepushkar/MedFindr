@@ -61,12 +61,22 @@ def assess_urgency(text: str) -> UrgencyResult:
         score+=10
         reason="Fever, rash, and severe headache combination detected"
         if reason not in reasons: reasons.append(reason)
-    moderate_matches=[(p,r) for p,r in MODERATE_FLAGS if p in lower]
+    matched_patterns = {pattern for pattern, _ in MODERATE_FLAGS if pattern in lower}
+    moderate_matches = []
+    for pattern, reason in MODERATE_FLAGS:
+        if pattern not in matched_patterns:
+            continue
+        # A specific phrase should not also score its contained generic phrase.
+        # Example: "high fever" is one concept, not two independent findings.
+        if any(pattern != specific and pattern in specific and specific in lower for specific in matched_patterns):
+            continue
+        moderate_matches.append((pattern, reason))
     if any(ctx in lower for ctx in LOW_SIGNAL_SWELLING_CONTEXTS):
-        moderate_matches=[item for item in moderate_matches if item[0] != "swelling"]
-    for _,reason in moderate_matches:
-        score+=3
-        if reason not in reasons: reasons.append(reason)
+        moderate_matches = [item for item in moderate_matches if item[0] != "swelling"]
+    for _, reason in moderate_matches:
+        score += 3
+        if reason not in reasons:
+            reasons.append(reason)
     if score>=10:
         level="high"; recommendation="High-priority signals matched by the prototype. If symptoms are currently severe or worsening, seek urgent medical care."
     elif score>=3:
