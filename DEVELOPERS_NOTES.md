@@ -1,30 +1,29 @@
 # MedFindr — Developer Notes
 
-## VERSION X1 — rule reliability and portfolio cleanup
+## X2 — reproducible rule evaluation
 
-I kept the current Streamlit → response-engine architecture. It is small enough to understand end to end, and there is no reason to add a database or service layer just to make the project look bigger.
+I kept the existing Streamlit flow and rule engine in place for this update. The most useful next step was making it easier to tell whether a rule change broke something, rather than adding another broad feature.
 
-### Work in this update
+### What changed
 
-- Review the rule-scoring behavior where a specific phrase also contains a general phrase (for example, `high fever` contains `fever`).
-- Count a matched concept once when a longer, more specific phrase already represents it.
-- Add regression tests for those overlaps so the score does not rise just because the wording is more specific.
-- Re-state the actual runtime and data boundaries in the README.
+- Added strict checks for evaluation case shape, non-empty concern text, known labels, and unique case IDs.
+- Added a report builder with overall agreement, confusion matrix, and per-class precision/recall/support.
+- Added `--json-out` so an evaluation run can be saved and compared later.
+- Added regression tests for the report and malformed evaluation fixtures.
+- Kept the report explicit that a small labelled fixture is not clinical validation.
 
-### Existing flow retained
-
-`app.py` collects the input and renders the response. `utils/validation.py` bounds input. `utils/response_engine.py` orchestrates the modules. `utils/urgency.py` contains the transparent rule layer. `utils/drug_lookup.py` handles public label retrieval and provenance. The optional EBM path remains explicitly optional.
-
-### Verification to run before promotion
+### How I check it
 
 ```bash
 python -m unittest discover -s tests -v
 python scripts/evaluate.py
-python -m compileall -q .
+python scripts/evaluate.py --json-out reports/medfindr-evaluation.json
 ```
 
-Do not mark the update as tested until those commands and the GitHub Actions workflow have actually completed successfully.
+### What I have not claimed
 
-### Not part of X1
+This does not make the rule engine medically validated. The sample set is small and manually labelled. The application is still a prototype; no patient database, account system, or production deployment was added.
 
-No clinical claims, patient accounts, patient-record database, authentication, real hospital integration, or production triage capability is being added. Synthetic fixtures remain software tests only.
+### Next things worth doing
+
+The next useful work is expanding the evaluation cases with deliberately tricky examples, reviewing false positives and false negatives, and making external-source failure states easier to inspect. I would not add more model complexity until those checks are better.

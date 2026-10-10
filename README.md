@@ -1,30 +1,33 @@
-# MedFindr — VERSION X1
+# MedFindr — X2
 
 **Med × Pharma × Data × Technology**
 
-MedFindr is my student-built healthcare/pharmaceutical technology prototype for turning a short concern into a structured, traceable information view. The point is not to claim a diagnosis; it is to make the software workflow understandable, testable, and honest about its limits.
+MedFindr is my student-built healthcare/pharmaceutical information prototype. It combines a small, transparent rule-based concern flagger with public drug-label lookup and a repeatable evaluation workflow. The purpose of this update is to make the results easier to inspect and the rule checks easier to reproduce—not to claim a medical product.
 
-## What it does today
+## What currently works
 
-- Accepts a bounded free-text concern through a Streamlit interface.
-- Runs a transparent, rule-based informational flag layer.
-- Keeps the optional Explainable Boosting Machine output separate from the rule result and labels the fallback when a compatible model is unavailable.
-- Can retrieve public drug-label information from OpenFDA, with source and retrieval metadata.
-- Displays sample concerns, structured sections, and a technical staff view.
-- Includes regression tests and a small rule-engine evaluation script.
+- Streamlit interface for a bounded free-text concern and optional medicine name.
+- Explainable rule-based flags, with overlapping moderate phrases prevented from inflating the same score.
+- Optional local model output kept separate from rule results, with fallback behaviour labelled.
+- Public OpenFDA drug-label lookup with source and retrieval metadata.
+- A labelled local fixture and evaluation script that reports a confusion matrix, per-class precision/recall, and individual mismatches.
+- Optional JSON report output for comparing runs and preserving review evidence.
+- Regression tests for the rule engine and evaluation inputs.
 
-## Workflow
+## Main workflow
 
 ```text
-Concern + optional drug name
+Concern / optional medicine name
         ↓
 Input validation
         ↓
-Response engine ──→ prototype flagging
-        │            optional model/fallback
-        └──────────→ OpenFDA label lookup
+Rule-based information flags ── optional model/fallback shown separately
         ↓
-Structured result with source notes
+Public label lookup (when requested)
+        ↓
+Structured result + source notes
+        ↓
+Offline evaluation fixture for rule regressions
 ```
 
 The app is a single Streamlit/Python application. It does not currently include user accounts, a patient database, a separate backend service, or persistent patient records.
@@ -36,34 +39,37 @@ python -m pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Run checks:
+Run the tests and evaluation:
 
 ```bash
 python -m unittest discover -s tests -v
 python scripts/evaluate.py
+python scripts/evaluate.py --json-out reports/medfindr-evaluation.json
 ```
 
-## Why this update is VERSION X1
+The JSON report contains the fixture version, total and matched cases, accuracy, confusion matrix, per-class metrics, and case-level outcomes. The output file is generated locally and should be reviewed before sharing.
 
-This update focuses on correctness at the edges rather than adding a big feature list. In particular, overlapping rule phrases such as `fever` and `high fever` or `vomiting` and `persistent vomiting` should not inflate the prototype score for the same underlying signal. The regression suite should lock that behavior down so later rule changes remain deliberate.
+## X2 focus
+
+X2 makes the evaluation workflow more useful for ongoing development. The evaluator now rejects malformed cases, unknown labels, blank concerns, and duplicate case IDs rather than silently allowing a broken fixture to distort the report. It can write a machine-readable report so future changes can be compared using the same labelled cases.
 
 ## Data and safety boundaries
 
-- The bundled evaluation and sample data are development fixtures, not clinical datasets.
+- The evaluation and sample data are development fixtures, not clinical datasets.
 - The rule engine is not a validated triage tool and its output is not a diagnosis.
-- Model output is only available when a compatible local model artifact exists; synthetic training is not clinical evidence.
-- OpenFDA results are retrieved public label information, not a recommendation to start, stop, or change medication.
+- Evaluation accuracy measures agreement with this small hand-labelled fixture only; it is not a measure of medical safety or real-world effectiveness.
+- OpenFDA results are public label information, not a recommendation to start, stop, or change medication.
 - Do not enter real patient-identifying information.
 
 ## Current limitations
 
-The rule layer is intentionally small; the evaluation set is small; external retrieval depends on source availability; and no authentication, database, institutional integration, or production deployment is implemented. These are explicit boundaries, not hidden capabilities.
+The rule set and evaluation fixture are small; labels are manually assigned; external retrieval depends on source availability; and no authentication, patient database, institutional integration, or production deployment is implemented. The report is useful for regression checks but cannot establish clinical validity.
 
 ## Next practical steps
 
-1. Expand tests for overlapping rules, input boundaries, and external-source failures.
-2. Add a repeatable evaluation report with per-class counts and known failure cases.
+1. Add more adversarial rule examples and review false positives/negatives deliberately.
+2. Track source freshness and external lookup failures as explicit states.
 3. Improve provenance and result export without collecting patient records.
-4. Only consider larger data/model work after the evaluation and privacy story is clear.
+4. Only consider larger data/model work after evaluation quality and privacy boundaries are clear.
 
-See [DEVELOPERS_NOTES.md](DEVELOPERS_NOTES.md) for the audit notes and this update's scope.
+See [DEVELOPERS_NOTES.md](DEVELOPERS_NOTES.md) and [docs/evaluation.md](docs/evaluation.md) for the update details.
