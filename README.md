@@ -1,132 +1,75 @@
-# MedFindr v1.1
+# MedFindr — X2
 
 **Med × Pharma × Data × Technology**
 
-MedFindr is an actively developed healthcare/pharmaceutical technology prototype exploring medical information discovery, transparent informational flagging, structured data handling, and future integration with healthcare and pharma workflows.
+MedFindr is my student-built healthcare/pharmaceutical information prototype. It combines a small, transparent rule-based concern flagger with public drug-label lookup and a repeatable evaluation workflow. The purpose of this update is to make the results easier to inspect and the rule checks easier to reproduce—not to claim a medical product.
 
-## Current status
+## What currently works
 
-**v1.1 — reliability and architecture foundation**
+- Streamlit interface for a bounded free-text concern and optional medicine name.
+- Explainable rule-based flags, with overlapping moderate phrases prevented from inflating the same score.
+- Optional local model output kept separate from rule results, with fallback behaviour labelled.
+- Public OpenFDA drug-label lookup with source and retrieval metadata.
+- A labelled local fixture and evaluation script that reports a confusion matrix, per-class precision/recall, and individual mismatches.
+- Optional JSON report output for comparing runs and preserving review evidence.
+- Regression tests for the rule engine and evaluation inputs.
 
-The current release focuses on making the existing prototype dependable and understandable rather than adding a large number of unfinished features.
+## Main workflow
 
-### Current workflow
+```text
+Concern / optional medicine name
+        ↓
+Input validation
+        ↓
+Rule-based information flags ── optional model/fallback shown separately
+        ↓
+Public label lookup (when requested)
+        ↓
+Structured result + source notes
+        ↓
+Offline evaluation fixture for rule regressions
+```
 
-USER → STREAMLIT UI → INPUT VALIDATION → RESPONSE ENGINE → PROTOTYPE FLAG / OPTIONAL EBM / OPENFDA RETRIEVAL → STRUCTURED RESPONSE + PROVENANCE
-
-The repository currently has **no application database, user-authentication system, or separate backend service**. That is deliberate at this stage: the prototype keeps its architecture small while leaving clean boundaries for future data and API integrations.
-
-## What works now
-
-- Free-text concern input with bounded validation
-- Transparent rule-based prototype informational flags
-- Regression-tested urgency behaviour
-- Optional Explainable Boosting Machine layer with explicit fallback status
-- Structured response objects separating application logic from presentation
-- OpenFDA label retrieval with timeout/error handling and source provenance
-- Patient and Staff UI modes
-- Sample-concern workflow
-- Evaluation script with confusion matrix and per-class metrics
-- Automated regression checks through GitHub Actions
-- Central configuration with no application secrets hard-coded in source
-
-## Architecture
-
-### Presentation
-app.py contains the Streamlit interface only. It collects input, provides loading/error feedback, and renders structured results.
-
-### Application logic
-utils/response_engine.py orchestrates the workflow without embedding presentation code.
-
-### Prototype flagging
-utils/urgency.py contains the transparent rule layer. A flag is an informational prototype output, not a clinical conclusion.
-
-### Model extension point
-utils/ebm_risk.py can load a compatible trained model artifact. If none is available, the application uses a clearly labelled fallback rather than pretending a trained model exists.
-
-### External data
-utils/drug_lookup.py isolates external label retrieval and attaches provenance metadata to returned records. External information is kept distinct from system-generated analysis.
-
-### Data fixtures
-data/ contains the small evaluation and sample fixtures used by the prototype.
-
-## Technologies
-
-- Python
-- Streamlit
-- Requests
-- pandas / NumPy
-- scikit-learn
-- InterpretML
-- joblib
-- GitHub Actions for automated checks
+The app is a single Streamlit/Python application. It does not currently include user accounts, a patient database, a separate backend service, or persistent patient records.
 
 ## Run locally
 
-    python -m pip install -r requirements.txt
-    streamlit run app.py
+```bash
+python -m pip install -r requirements.txt
+streamlit run app.py
+```
 
-Run the regression suite:
+Run the tests and evaluation:
 
-    python -m unittest discover -s tests -v
+```bash
+python -m unittest discover -s tests -v
+python scripts/evaluate.py
+python scripts/evaluate.py --json-out reports/medfindr-evaluation.json
+```
 
-Run the rule-engine evaluation:
+The JSON report contains the fixture version, total and matched cases, accuracy, confusion matrix, per-class metrics, and case-level outcomes. The output file is generated locally and should be reviewed before sharing.
 
-    python scripts/evaluate.py
+## X2 focus
 
-## Security and data handling
+X2 makes the evaluation workflow more useful for ongoing development. The evaluator now rejects malformed cases, unknown labels, blank concerns, and duplicate case IDs rather than silently allowing a broken fixture to distort the report. It can write a machine-readable report so future changes can be compared using the same labelled cases.
 
-- Application secrets are not stored in source code.
-- .env and Streamlit secrets files are ignored by Git.
-- User input is bounded and normalized before analysis.
-- External API failures are handled without exposing raw exception details to the UI.
-- No patient database or persistent health record store is currently implemented.
+## Data and safety boundaries
 
-## Medical/pharma scope
+- The evaluation and sample data are development fixtures, not clinical datasets.
+- The rule engine is not a validated triage tool and its output is not a diagnosis.
+- Evaluation accuracy measures agreement with this small hand-labelled fixture only; it is not a measure of medical safety or real-world effectiveness.
+- OpenFDA results are public label information, not a recommendation to start, stop, or change medication.
+- Do not enter real patient-identifying information.
 
-MedFindr distinguishes between:
+## Current limitations
 
-**Retrieved information** — external data returned by a configured source and shown with provenance.
+The rule set and evaluation fixture are small; labels are manually assigned; external retrieval depends on source availability; and no authentication, patient database, institutional integration, or production deployment is implemented. The report is useful for regression checks but cannot establish clinical validity.
 
-**Prototype analysis** — rule/model outputs generated by the application and explicitly labelled as such.
+## Next practical steps
 
-The current rule engine and small evaluation set are software-development fixtures. Their results are **not clinical validation** and do not establish diagnostic accuracy, medical safety, or treatment effectiveness.
+1. Add more adversarial rule examples and review false positives/negatives deliberately.
+2. Track source freshness and external lookup failures as explicit states.
+3. Improve provenance and result export without collecting patient records.
+4. Only consider larger data/model work after evaluation quality and privacy boundaries are clear.
 
-## Future development
-
-### V2
-
-- richer medical/pharma datasets
-- stronger search and structured information retrieval
-- expanded evaluation coverage
-- improved informational flagging logic
-- provenance and evidence metadata
-- controlled AI/ML experimentation
-- additional external API integrations
-- analytics built around non-sensitive, structured data
-
-### V3 research direction
-
-Potential future exploration includes biomedical/bioinformatics data, pharmacovigilance research workflows, pharmacological relationships, institutional APIs, device/event inputs, real-time alert pipelines, and research-oriented analytics.
-
-### Long-term portfolio direction
-
-Potential research areas include AI-assisted drug discovery, biomedical knowledge graphs, clinical decision-support research, predictive modelling, bioinformatics pipelines, and healthcare/pharma workflow integration.
-
-These are future directions, not current capabilities.
-
-## Limitations
-
-- The urgency layer is a small keyword/rule prototype.
-- The bundled evaluation set is intentionally small.
-- The optional EBM workflow currently trains on synthetic development data; that is not a clinical dataset.
-- No authentication, database, patient-record persistence, institutional integration, or production deployment is implemented.
-- External source availability can affect retrieved-information features.
-
-## Development principle
-
-Build the foundation, not the fantasy:
-
-**inspect → plan → modify → test → fix → retest**
-
-The project should remain a serious student-built healthcare/pharma technology prototype, not a simulated commercial medical platform.
+See [DEVELOPERS_NOTES.md](DEVELOPERS_NOTES.md) and [docs/evaluation.md](docs/evaluation.md) for the update details.
