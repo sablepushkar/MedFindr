@@ -87,7 +87,7 @@ def build_report(results: list[dict], confusion: dict) -> dict:
             "support": support,
         }
     return {
-        "project_version": "MedFindr X2",
+        "project_version": "MedFindr",
         "evaluation_type": "rule-based regression fixture; not clinical validation",
         "total_cases": total,
         "correct_cases": correct,

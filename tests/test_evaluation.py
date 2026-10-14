@@ -10,7 +10,7 @@ class EvaluationWorkflowTests(unittest.TestCase):
             {"id": "high-1", "concern": "difficulty breathing", "expected_urgency": "high"},
         ])
         report = build_report(results, confusion)
-        self.assertEqual(report["project_version"], "MedFindr X2")
+        self.assertEqual(report["project_version"], "MedFindr")
         self.assertEqual(report["total_cases"], 2)
         self.assertEqual(report["correct_cases"], 2)
         self.assertEqual(report["accuracy_percent"], 100.0)
