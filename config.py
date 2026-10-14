@@ -1,4 +1,4 @@
-"""Central configuration for MedFindr v1.1."""
+"""Central configuration for MedFindr."""
 
 from pathlib import Path
 
@@ -8,7 +8,6 @@ SAMPLE_CONCERNS_PATH = DATA_DIR / "sample_concerns.json"
 EVALUATION_SET_PATH = DATA_DIR / "evaluation_set.json"
 
 APP_NAME = "MedFindr"
-APP_VERSION = "v1.1"
 APP_CAPTION = "Med × Pharma • structured information • transparent prototype flags"
 
 DISCLAIMER = (

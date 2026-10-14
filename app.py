@@ -11,7 +11,6 @@ import streamlit as st
 from config import (
     APP_CAPTION,
     APP_NAME,
-    APP_VERSION,
     DISCLAIMER,
     SAMPLE_CONCERNS_PATH,
 )
@@ -167,13 +166,13 @@ def render_structured_response(response: Any, view_mode: str) -> None:
 
 def main() -> None:
     st.set_page_config(
-        page_title=f"{APP_NAME} {APP_VERSION}",
+        page_title=APP_NAME,
         page_icon="🧬",
         layout="centered",
     )
 
     st.title(APP_NAME)
-    st.caption(f"{APP_VERSION} • {APP_CAPTION}")
+    st.caption(APP_CAPTION)
     st.warning(DISCLAIMER)
 
     view_mode = st.radio(
