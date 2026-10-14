@@ -1,91 +1,37 @@
-# MedFindr X2 — Architecture Audit
+# MedFindr — how the app is organised
 
-## Current system boundary
+## Current setup
 
-MedFindr is currently a single Python/Streamlit prototype. It is not a full-stack application yet.
+MedFindr is one Python application built with Streamlit. The interface, rule logic and source lookup are separate parts of the code, but they run as one app.
 
-### USER → UI → APPLICATION LOGIC → API/DATA → RESULT
+## Main path
 
-1. User enters a free-text health concern and optionally a lookup term.
-2. Streamlit UI collects input and submits through one form.
-3. Input validation normalizes text and enforces bounded inputs.
-4. Response engine orchestrates the workflow.
-5. Urgency layer produces a transparent prototype informational flag.
-6. EBM layer optionally loads a compatible local model or exposes a fallback.
-7. External data layer retrieves structured label information from the configured public source.
-8. Structured response combines generated analysis and retrieved information while keeping provenance attached to external data.
-9. UI renders results, errors, scope notes, and source metadata.
+1. The user enters a short concern and may enter a medicine name.
+2. The app checks and normalises the input.
+3. The rule code looks for a limited set of phrases and context.
+4. Optional model output or fallback behaviour is shown separately from the rule result.
+5. If requested, the app looks up public drug-label data.
+6. The result shows what MedFindr generated and what came from the external source.
+7. The user can fill in a review form and export it as JSON.
 
-## Audit findings
+## What is present
 
-### Working and retained
+- Streamlit interface and response flow.
+- Rule-based phrase checks.
+- Optional local model loading with fallback behaviour.
+- Public drug-label lookup.
+- Source metadata and evidence records.
+- Small evaluation scripts and regression tests.
+- Session-based review form and JSON export.
 
-- Thin Streamlit presentation layer
-- Modular response engine
-- Rule-based urgency engine
-- Cached optional model loading
-- External-data isolation
-- Regression/evaluation tooling
-- Existing evaluation edge-case fixes
+## What is not present
 
-### X2 stabilization and retained improvements
+There is no user-account system, patient database, persistent review database, hospital integration or production deployment. The trace helper is for debugging and is not an audit log. The app does not use a clinically validated model.
 
-- Bounded input validation
-- Defensive parsing of external API responses
-- Stable user-facing error messages
-- Source provenance for retrieved records
-- Explicit distinction between informational flags and retrieved data
-- Form-based submission to reduce accidental repeated actions
-- Mobile-friendly centered layout and full-width primary action
-- Technical model details are available to all users; the view is not access-controlled
-- Automated regression workflow
-- Clear architecture and scope documentation
+## Why I am keeping it small
 
-### Deliberately not added
+Adding authentication, a database or several services would make the project harder to maintain without solving the problems I am testing right now. I want the rules, lookup failures and evaluation results to be understandable first.
 
-- Database
-- Authentication
-- Patient accounts
-- Persistent health records
-- Hospital/device integrations
-- Real-time alert infrastructure
-- Autonomous diagnosis
-- Large AI/LLM layer
-- Complex microservices
-- Production cloud infrastructure
+## Data and safety
 
-Those additions would increase system complexity without solving a current v1.1 reliability problem.
-
-## Security review
-
-No application secret is hard-coded in the current source. Local environment/secrets files are ignored. The current prototype does not implement authentication because it does not have user accounts or protected data.
-
-## Data/provenance model
-
-External records carry:
-
-- source name
-- source type
-- source endpoint
-- query
-- retrieval timestamp
-
-System-generated analysis is labelled separately and should never be presented as retrieved clinical evidence.
-
-## Extension points
-
-Future modules can be added behind the response-engine boundary:
-
-- evidence/data retrieval
-- structured pharmaceutical data
-- analytics
-- validated ML models
-- institutional API adapters
-- research workflows
-
-The current architecture intentionally keeps these as extension points rather than pretending they already exist.
-
-
-## SignalGraph and review boundaries
-
-`build_response` retains the original response fields and adds optional structured context, completeness, safety-signal, evidence, and trace objects. The pipeline remains in-memory except for the existing optional drug-label retrieval; it does not persist analysis traces or review records. The phrase matcher applies a small set of direct-negation patterns but is not a clinical language model. Evidence objects distinguish rule-generated notes from retrieved label metadata. Review bundles are user-triggered JSON exports and are explicitly not compliance records.
+The public lookup data is not the same thing as MedFindr's own rule output. The app should keep those sources distinct. No secrets should be committed, and no real patient-identifying information should be entered. This project is for learning and software experiments, not diagnosis or treatment decisions.
