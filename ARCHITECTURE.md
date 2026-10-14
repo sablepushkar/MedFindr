@@ -84,3 +84,8 @@ Future modules can be added behind the response-engine boundary:
 - research workflows
 
 The current architecture intentionally keeps these as extension points rather than pretending they already exist.
+
+
+## SignalGraph and review boundaries
+
+`build_response` retains the original response fields and adds optional structured context, completeness, safety-signal, evidence, and trace objects. The pipeline remains in-memory except for the existing optional drug-label retrieval; it does not persist analysis traces or review records. The phrase matcher applies a small set of direct-negation patterns but is not a clinical language model. Evidence objects distinguish rule-generated notes from retrieved label metadata. Review bundles are user-triggered JSON exports and are explicitly not compliance records.

@@ -27,3 +27,13 @@ This does not make the rule engine medically validated. The sample set is small 
 ### Next things worth doing
 
 The next useful work is expanding the evaluation cases with deliberately tricky examples, reviewing false positives and false negatives, and making external-source failure states easier to inspect. I would not add more model complexity until those checks are better.
+
+
+## SignalGraph and review workflow
+
+- `utils/clinical_data.py` performs bounded phrase matching and skips common direct negations; it does not infer a diagnosis.
+- `utils/safety_signals.py` flags only configured medication/context patterns and explicitly avoids causality claims.
+- `utils/evidence.py` records whether an item came from a prototype rule or an external label lookup.
+- `utils/analysis_trace.py` is an in-memory debugging trace, not an audit log.
+- `utils/review.py` validates session-scoped review fields; `utils/review_export.py` serializes a JSON bundle on request. There is no review database or persistence guarantee.
+- Run `python scripts/evaluate_signals.py` and `python scripts/evaluate_reviews.py` to exercise the included synthetic fixtures.

@@ -16,6 +16,8 @@ from config import (
     SAMPLE_CONCERNS_PATH,
 )
 from utils.response_engine import build_response
+from utils.review import create_review_record, validate_review_record
+from utils.review_export import serialize_review_bundle
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -89,6 +91,61 @@ def render_structured_response(response: Any, view_mode: str) -> None:
 
         for item in section.items:
             st.markdown(f"- {item}")
+
+    if response.clinical_context is not None:
+        with st.expander("Structured signal details"):
+            st.json({
+                "clinical_context": response.clinical_context.to_dict(),
+                "data_quality": response.data_quality.to_dict() if response.data_quality else None,
+                "safety_signal": response.safety_signal.to_dict() if response.safety_signal else None,
+            })
+    if response.evidence:
+        with st.expander("Evidence and provenance"):
+            st.json([item.to_dict() for item in response.evidence])
+    if response.trace is not None:
+        with st.expander("Analysis trace (in-memory development trace, not an audit log)"):
+            st.json(response.trace.to_dict())
+
+    with st.expander("Human review and JSON export"):
+        st.caption("Review state is held in the current app session. It is not persisted as a governed review record or compliance audit log.")
+        analysis_id = response.trace.analysis_id if response.trace else "untracked"
+        bundle_key = f"review_bundle_{analysis_id}"
+        with st.form(f"review_form_{analysis_id}"):
+            review_status = st.selectbox("Review status", ["new", "in_review", "awaiting_follow_up", "reviewed"])
+            disposition = st.selectbox("Disposition", ["unresolved", "informational", "follow_up_required", "closed_for_review"])
+            evidence_options = [item.title for item in response.evidence]
+            evidence_reviewed = st.multiselect("Evidence reviewed", evidence_options)
+            reviewer_reasoning = st.text_area("Reviewer notes", max_chars=4000)
+            follow_up_required = st.checkbox("Follow-up required")
+            follow_up_notes = st.text_area("Follow-up notes", max_chars=2000)
+            review_submitted = st.form_submit_button("Validate review and prepare JSON export")
+        if review_submitted:
+            review = create_review_record(response)
+            review.status = review_status
+            review.disposition = disposition
+            review.evidence_reviewed = evidence_reviewed
+            review.reviewer_reasoning = reviewer_reasoning
+            review.follow_up_required = follow_up_required
+            review.follow_up_notes = follow_up_notes
+            if review_status == "reviewed":
+                review.mark_reviewed()
+            validation_errors = validate_review_record(review)
+            if validation_errors:
+                st.error("Review was not exported. Correct the following:")
+                for message in validation_errors:
+                    st.markdown(f"- {message}")
+                st.session_state.pop(bundle_key, None)
+            else:
+                st.session_state[bundle_key] = serialize_review_bundle(response, review)
+                st.success("Review validated. The JSON bundle is ready to download; it has not been uploaded or persisted by MedFindr.")
+        if st.session_state.get(bundle_key):
+            st.download_button(
+                "Download review bundle (JSON)",
+                data=st.session_state[bundle_key],
+                file_name=f"medfindr-review-{analysis_id}.json",
+                mime="application/json",
+                key=f"download_review_{analysis_id}",
+            )
 
     if response.drug_result is not None:
         st.markdown("### 5. Drug Information")

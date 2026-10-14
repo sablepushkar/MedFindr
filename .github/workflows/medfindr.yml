@@ -30,5 +30,11 @@ jobs:
       - name: Run regression tests
         run: python -m unittest discover -s tests -v
 
-      - name: Run evaluation
+      - name: Run urgency evaluation
         run: python scripts/evaluate.py
+
+      - name: Run medication signal evaluation
+        run: python scripts/evaluate_signals.py
+
+      - name: Run review workflow evaluation
+        run: python scripts/evaluate_reviews.py

@@ -73,3 +73,12 @@ The rule set and evaluation fixture are small; labels are manually assigned; ext
 4. Only consider larger data/model work after evaluation quality and privacy boundaries are clear.
 
 See [DEVELOPERS_NOTES.md](DEVELOPERS_NOTES.md) and [docs/evaluation.md](docs/evaluation.md) for the update details.
+
+
+## Structured SignalGraph and human review
+
+The current `main` workflow now includes a small phrase-based structured context layer, an input-completeness indicator, medication-exposure pattern flags, a stage trace, and evidence/provenance objects. These are transparent software features, not clinical NLP or validated pharmacovigilance. Common direct negations such as “no chest pain” and “denies difficulty breathing” are excluded from the extracted-present symptom list; this limited matcher is not a substitute for clinical review.
+
+A reviewer can record a session-scoped disposition, evidence reviewed, notes, and follow-up requirements in the Streamlit interface, validate the fields, and download a JSON review bundle. MedFindr does not persist these review records to a database, and the trace is not a compliance audit log.
+
+Synthetic behavior checks: `python scripts/evaluate_signals.py` and `python scripts/evaluate_reviews.py`. Passing these fixtures indicates software behavior on the included cases only; it is not clinical validation.
