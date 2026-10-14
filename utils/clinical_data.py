@@ -59,7 +59,8 @@ SYMPTOM_CONCEPTS = {
 _NEGATION = re.compile(
     r"(?:\bno\b|\bdenies\b|\bdenied\b|\bwithout\b|\bnot\b|\bnever\b|"
     r"\babsence of\b|\bnegative for\b|\bfree of\b|\bdoes not have\b|"
-    r"\bdoesn't have\b|\bnot experiencing\b)(?:\s+[\w'-]+){0,3}\s*$",
+    r"\bdoesn't have\b|\bnot experiencing\b)"
+    r"(?:\s+(?!and\b|or\b|but\b|however\b|while\b|although\b|yet\b|except\b)[\w'-]+){0,3}\s*$",
     re.IGNORECASE,
 )
 

@@ -1,4 +1,4 @@
-"""Regression tests for the MedFindr v1.2 SignalGraph pipeline."""
+"""Regression tests for the MedFindr SignalGraph pipeline."""
 from __future__ import annotations
 import unittest
 from unittest.mock import patch
@@ -22,6 +22,12 @@ class SignalGraphTests(unittest.TestCase):
         self.assertNotIn("difficulty breathing", concepts)
         signal = assess_safety_signal(context)
         self.assertNotEqual(signal.status, "flagged")
+
+    def test_negation_does_not_leak_across_conjunctions(self):
+        context = extract_clinical_context("no rash and fever after taking a new medicine", "example")
+        concepts = {item.concept for item in context.symptoms}
+        self.assertNotIn("rash", concepts)
+        self.assertIn("fever", concepts)
 
     def test_flags_signal_without_claiming_causality(self):
         context = extract_clinical_context("rash and fever after taking a new medicine", "example")
@@ -53,11 +59,8 @@ class SignalGraphTests(unittest.TestCase):
     @patch("utils.response_engine.search_drug")
     def test_external_result_becomes_evidence(self, mock_search):
         mock_search.return_value = {
-            "status": "success",
-            "source": "Test source",
-            "source_url": "https://example.test",
-            "query": "example",
-            "retrieved_at_utc": "2026-09-22T00:00:00+00:00",
+            "status": "success", "source": "Test source", "source_url": "https://example.test",
+            "query": "example", "retrieved_at_utc": "2026-09-22T00:00:00+00:00",
         }
         response = build_response("rash", "example", include_ebm=False)
         self.assertTrue(any(item.evidence_type == "regulatory_label" for item in response.evidence))
