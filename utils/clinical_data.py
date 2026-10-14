@@ -46,6 +46,7 @@ SYMPTOM_CONCEPTS = {
     "can't breathe": "respiratory",
     "unable to breathe": "respiratory",
     "severe headache": "neurological",
+    "chest tightness": "cardiac",
     "chest pain": "cardiac",
     "unconsciousness": "neurological",
     "fainting": "neurological",
@@ -64,7 +65,8 @@ _NEGATION = re.compile(
     re.IGNORECASE,
 )
 
-def _is_negated(text: str, start: int) -> bool:
+def is_negated_phrase(text: str, start: int) -> bool:
+    """Return whether a recognized phrase has a nearby direct negation prefix."""
     window = text[max(0, start - 55):start]
     return bool(_NEGATION.search(window))
 
@@ -72,7 +74,7 @@ def _extract_symptoms(text: str) -> list[ClinicalFinding]:
     candidates: list[tuple[int, int, str, str, str]] = []
     for concept, category in sorted(SYMPTOM_CONCEPTS.items(), key=lambda item: len(item[0]), reverse=True):
         for match in re.finditer(re.escape(concept), text, flags=re.IGNORECASE):
-            if _is_negated(text, match.start()):
+            if is_negated_phrase(text, match.start()):
                 continue
             if any(match.start() < end and match.end() > start for start, end, *_ in candidates):
                 continue
