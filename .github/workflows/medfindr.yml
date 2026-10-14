@@ -30,11 +30,21 @@ jobs:
       - name: Run regression tests
         run: python -m unittest discover -s tests -v
 
-      - name: Run urgency evaluation
-        run: python scripts/evaluate.py
+      - name: Run urgency evaluation with machine-readable report
+        run: python scripts/evaluate.py --json-out "$RUNNER_TEMP/medfindr-urgency-evaluation.json"
 
       - name: Run medication signal evaluation with machine-readable report
         run: python scripts/evaluate_signals.py --json-out "$RUNNER_TEMP/medfindr-signal-evaluation.json"
 
       - name: Run review workflow evaluation
         run: python scripts/evaluate_reviews.py
+
+      - name: Upload synthetic evaluation reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: medfindr-evaluation-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/medfindr-urgency-evaluation.json
+            ${{ runner.temp }}/medfindr-signal-evaluation.json
+          if-no-files-found: error
+          retention-days: 30
