@@ -1,49 +1,44 @@
-# MedFindr — X2
+# MedFindr
 
-**Med × Pharma × Data × Technology**
+MedFindr is a project I have been building to explore the overlap between healthcare information, pharmacy data and Python. It is a small Streamlit app, not a medical product. I wanted to see how simple rules and information from a public drug-label source could work together, and how tests can help catch mistakes when I change the code.
 
-MedFindr is my student-built healthcare/pharmaceutical information prototype. It combines a small, transparent rule-based concern flagger with public drug-label lookup and a repeatable evaluation workflow. The purpose is to make results inspectable and rule checks reproducible—not to claim a medical product.
+## What it does
 
-## What currently works
+- Takes a short text concern and an optional medicine name.
+- Runs a small rule-based check and shows an informational flag.
+- Can look up public drug-label information through OpenFDA.
+- Keeps rule-generated output separate from data returned by the external source.
+- Shows source details and lookup status.
+- Includes small labelled examples for checking rule behaviour.
+- Can export a review from the current session as JSON.
+- Has tests for rule logic, evaluation inputs, lookup failures and parts of the Streamlit review flow.
 
-- Streamlit interface for a bounded free-text concern and optional medicine name.
-- Explainable rule-based flags, with overlapping moderate phrases prevented from inflating the same score.
-- Optional local model output kept separate from rule results, with fallback behaviour labelled.
-- Public OpenFDA drug-label lookup with source and retrieval metadata.
-- Structured evidence records that keep generated rules distinct from retrieved label information.
-- A labelled local fixture and evaluation scripts that report mismatches and software-behaviour metrics.
-- Signal evaluation JSON reports with fixture SHA-256 fingerprint and source revision.
-- Human-review fields and JSON export for a session-scoped review workflow.
-- Regression tests for the rule engine, evaluation inputs, external lookup failure states, and Streamlit review flow.
-
-## Main workflow
+## How it works
 
 ~~~text
-Concern / optional medicine name
+Text entered by user
         ↓
-Input validation
+Input checks
         ↓
-Rule-based information flags ── optional model/fallback shown separately
+Rule-based flag ── optional model output shown separately
         ↓
-Public label lookup (when requested)
+Optional public drug-label lookup
         ↓
-Structured result + evidence/source notes
+Result with source notes
         ↓
-Synthetic evaluation fixture + reproducible report
-        ↓
-Optional human review and JSON export
+Local evaluation and optional review export
 ~~~
 
-The app is a single Streamlit/Python application. It does not currently include user accounts, a patient database, a separate backend service, or persistent patient records.
+The app is currently one Python/Streamlit application. It does not have a separate backend, user accounts or a database of patient records.
 
-## Run locally
+## Run it
 
 ~~~bash
 python -m pip install -r requirements.txt
 streamlit run app.py
 ~~~
 
-Run the tests and evaluations:
+To run the tests and included checks:
 
 ~~~bash
 python -m unittest discover -s tests -v
@@ -53,19 +48,15 @@ python scripts/evaluate_signals.py --json-out reports/signal-evaluation.json
 python scripts/evaluate_reviews.py
 ~~~
 
-The signal JSON report includes the fixture filename and SHA-256 fingerprint, the GitHub Actions source revision when available, aggregate status counts, agreement, and case-level mismatches. Generated reports should be reviewed before sharing and are not committed by default.
+The evaluation report shows agreement with the labels in the small fixture, cases that did not match and a SHA-256 fingerprint of the input file. The fingerprint helps identify which fixture was used; it does not tell us whether the labels are medically correct.
 
-## Data and safety boundaries
+## What I am careful not to claim
 
-- The evaluation and sample data are development fixtures, not clinical datasets.
-- The rule engine is not a validated triage tool and its output is not a diagnosis.
-- Evaluation agreement measures matching against a small manually labelled fixture only; it is not a measure of medical safety or real-world effectiveness.
-- OpenFDA results are public label information, not a recommendation to start, stop, or change medication.
-- Retrieval failures are shown as errors; they must not be interpreted as proof that a medicine or label does not exist.
-- Do not enter real patient-identifying information.
+- The rules are not clinically validated and cannot diagnose or triage a person.
+- The example cases are small development fixtures, not a clinical dataset.
+- A successful OpenFDA lookup only means the source returned data. It is not personal medical advice.
+- A failed lookup does not prove that a medicine or label does not exist.
+- Review exports are session-based and are not a formal audit record.
+- Do not enter real patient-identifying information or use this app to make medication decisions.
 
-## Current limitations
-
-The rule set and evaluation fixtures are small; labels are manually assigned; external retrieval depends on source availability; and no authentication, patient database, institutional integration, or production deployment is implemented. Review records are session-scoped, not a governed review database or compliance audit log. Provenance improves inspectability but does not establish clinical validity.
-
-See DEVELOPERS_NOTES.md, docs/evaluation.md, and docs/evidence-reliability.md for implementation and scope details.
+I am keeping the project focused on readable code, traceable sources and tests before adding more features. See DEVELOPERS_NOTES.md and ARCHITECTURE.md for more detail.

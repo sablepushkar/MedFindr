@@ -1,39 +1,31 @@
-# MedFindr — Developer Notes
+# MedFindr — development notes
 
-## X2 — reproducible rule evaluation
+These notes record what I changed and what I still need to check. They are not meant to suggest that the project is finished.
 
-I kept the existing Streamlit flow and rule engine in place for this update. The most useful next step was making it easier to tell whether a rule change broke something, rather than adding another broad feature.
+## Recent work: evaluation and source handling
 
-### What changed
+I kept the existing Streamlit app and rule engine rather than replacing the project with a new framework. The latest work was mostly about making failures easier to notice.
 
-- Added strict checks for evaluation case shape, non-empty concern text, known labels, and unique case IDs.
-- Added a report builder with overall agreement, confusion matrix, and per-class precision/recall/support.
-- Added `--json-out` so an evaluation run can be saved and compared later.
-- Added regression tests for the report and malformed evaluation fixtures.
-- Kept the report explicit that a small labelled fixture is not clinical validation.
+- The evaluation scripts check that each case has an ID, concern text and a known expected status.
+- Duplicate IDs and malformed cases are rejected before metrics are calculated.
+- The signal evaluation can write a JSON report with the fixture hash, source revision, status counts and mismatches.
+- Drug lookup tests cover a normal response, a missing result, a timeout, invalid JSON and an unexpected response shape.
+- Evidence records distinguish a rule created by MedFindr from information returned by an external source.
+- The review form still works in the Streamlit session; it is not saved to a permanent review database.
 
-### How I check it
+## Commands I use to check it
 
-```bash
+~~~bash
 python -m unittest discover -s tests -v
 python scripts/evaluate.py
-python scripts/evaluate.py --json-out reports/medfindr-evaluation.json
-```
+python scripts/evaluate_signals.py
+python scripts/evaluate_reviews.py
+~~~
 
-### What I have not claimed
+## Things to remember
 
-This does not make the rule engine medically validated. The sample set is small and manually labelled. The application is still a prototype; no patient database, account system, or production deployment was added.
+The evaluation set is small and manually labelled. A high agreement number only means the current rules matched those examples; it is not a measure of clinical accuracy. The phrase matching is basic and can miss context. OpenFDA can also be unavailable or return a different record than expected, so the app needs to show lookup failures clearly.
 
-### Next things worth doing
+## Next useful work
 
-The next useful work is expanding the evaluation cases with deliberately tricky examples, reviewing false positives and false negatives, and making external-source failure states easier to inspect. I would not add more model complexity until those checks are better.
-
-
-## SignalGraph and review workflow
-
-- `utils/clinical_data.py` performs bounded phrase matching and skips common direct negations; it does not infer a diagnosis.
-- `utils/safety_signals.py` flags only configured medication/context patterns and explicitly avoids causality claims.
-- `utils/evidence.py` records whether an item came from a prototype rule or an external label lookup.
-- `utils/analysis_trace.py` is an in-memory debugging trace, not an audit log.
-- `utils/review.py` validates session-scoped review fields; `utils/review_export.py` serializes a JSON bundle on request. There is no review database or persistence guarantee.
-- Run `python scripts/evaluate_signals.py` and `python scripts/evaluate_reviews.py` to exercise the included synthetic fixtures.
+I would rather add a few carefully chosen tricky examples and review the mistakes than add another model or a bigger dashboard. I also need to keep testing the app itself, not only the helper functions.
