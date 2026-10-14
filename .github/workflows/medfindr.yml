@@ -40,7 +40,7 @@ jobs:
         run: python scripts/evaluate_reviews.py
 
       - name: Upload synthetic evaluation reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: medfindr-evaluation-${{ github.sha }}
           path: |
