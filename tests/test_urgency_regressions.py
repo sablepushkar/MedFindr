@@ -6,7 +6,7 @@ from utils.urgency import assess_urgency
 from utils.validation import validate_concern, validate_drug_name
 
 
-class VersionX1RegressionTests(unittest.TestCase):
+class UrgencyRegressionTests(unittest.TestCase):
     def test_specific_moderate_phrase_is_not_double_counted(self):
         high_fever = assess_urgency("high fever")
         self.assertEqual(high_fever.score, 3)
