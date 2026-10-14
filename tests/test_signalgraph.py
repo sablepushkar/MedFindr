@@ -29,6 +29,12 @@ class SignalGraphTests(unittest.TestCase):
         self.assertNotIn("rash", concepts)
         self.assertIn("fever", concepts)
 
+    def test_or_scope_keeps_both_symptoms_negated(self):
+        context = extract_clinical_context("no chest pain or fever after taking a new medicine", "example")
+        concepts = {item.concept for item in context.symptoms}
+        self.assertNotIn("chest pain", concepts)
+        self.assertNotIn("fever", concepts)
+
     def test_flags_signal_without_claiming_causality(self):
         context = extract_clinical_context("rash and fever after taking a new medicine", "example")
         signal = assess_safety_signal(context)

@@ -15,6 +15,11 @@ class EBMFeatureTests(unittest.TestCase):
         self.assertEqual(features["has_chest_pain"], 0)
         self.assertEqual(features["has_fever"], 1)
 
+    def test_negation_with_or_does_not_set_symptom_features(self):
+        features = extract_features("no chest pain or fever")
+        self.assertEqual(features["has_chest_pain"], 0)
+        self.assertEqual(features["has_fever"], 0)
+
     def test_blood_pressure_is_not_misread_as_bleeding(self):
         self.assertEqual(extract_features("my blood pressure is normal")["has_bleeding"], 0)
         self.assertEqual(extract_features("blood in stool")["has_bleeding"], 1)
