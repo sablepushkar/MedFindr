@@ -2,7 +2,7 @@
 
 **Med × Pharma × Data × Technology**
 
-MedFindr is my student-built healthcare/pharmaceutical information prototype. It combines a small, transparent rule-based concern flagger with public drug-label lookup and a repeatable evaluation workflow. The purpose of this update is to make the results easier to inspect and the rule checks easier to reproduce—not to claim a medical product.
+MedFindr is my student-built healthcare/pharmaceutical information prototype. It combines a small, transparent rule-based concern flagger with public drug-label lookup and a repeatable evaluation workflow. The purpose is to make results inspectable and rule checks reproducible—not to claim a medical product.
 
 ## What currently works
 
@@ -10,13 +10,15 @@ MedFindr is my student-built healthcare/pharmaceutical information prototype. It
 - Explainable rule-based flags, with overlapping moderate phrases prevented from inflating the same score.
 - Optional local model output kept separate from rule results, with fallback behaviour labelled.
 - Public OpenFDA drug-label lookup with source and retrieval metadata.
-- A labelled local fixture and evaluation script that reports a confusion matrix, per-class precision/recall, and individual mismatches.
-- Optional JSON report output for comparing runs and preserving review evidence.
-- Regression tests for the rule engine and evaluation inputs.
+- Structured evidence records that keep generated rules distinct from retrieved label information.
+- A labelled local fixture and evaluation scripts that report mismatches and software-behaviour metrics.
+- Signal evaluation JSON reports with fixture SHA-256 fingerprint and source revision.
+- Human-review fields and JSON export for a session-scoped review workflow.
+- Regression tests for the rule engine, evaluation inputs, external lookup failure states, and Streamlit review flow.
 
 ## Main workflow
 
-```text
+~~~text
 Concern / optional medicine name
         ↓
 Input validation
@@ -25,60 +27,45 @@ Rule-based information flags ── optional model/fallback shown separately
         ↓
 Public label lookup (when requested)
         ↓
-Structured result + source notes
+Structured result + evidence/source notes
         ↓
-Offline evaluation fixture for rule regressions
-```
+Synthetic evaluation fixture + reproducible report
+        ↓
+Optional human review and JSON export
+~~~
 
 The app is a single Streamlit/Python application. It does not currently include user accounts, a patient database, a separate backend service, or persistent patient records.
 
 ## Run locally
 
-```bash
+~~~bash
 python -m pip install -r requirements.txt
 streamlit run app.py
-```
+~~~
 
-Run the tests and evaluation:
+Run the tests and evaluations:
 
-```bash
+~~~bash
 python -m unittest discover -s tests -v
 python scripts/evaluate.py
-python scripts/evaluate.py --json-out reports/medfindr-evaluation.json
-```
+python scripts/evaluate_signals.py
+python scripts/evaluate_signals.py --json-out reports/signal-evaluation.json
+python scripts/evaluate_reviews.py
+~~~
 
-The JSON report contains the fixture version, total and matched cases, accuracy, confusion matrix, per-class metrics, and case-level outcomes. The output file is generated locally and should be reviewed before sharing.
-
-## X2 focus
-
-X2 makes the evaluation workflow more useful for ongoing development. The evaluator now rejects malformed cases, unknown labels, blank concerns, and duplicate case IDs rather than silently allowing a broken fixture to distort the report. It can write a machine-readable report so future changes can be compared using the same labelled cases.
+The signal JSON report includes the fixture filename and SHA-256 fingerprint, the GitHub Actions source revision when available, aggregate status counts, agreement, and case-level mismatches. Generated reports should be reviewed before sharing and are not committed by default.
 
 ## Data and safety boundaries
 
 - The evaluation and sample data are development fixtures, not clinical datasets.
 - The rule engine is not a validated triage tool and its output is not a diagnosis.
-- Evaluation accuracy measures agreement with this small hand-labelled fixture only; it is not a measure of medical safety or real-world effectiveness.
+- Evaluation agreement measures matching against a small manually labelled fixture only; it is not a measure of medical safety or real-world effectiveness.
 - OpenFDA results are public label information, not a recommendation to start, stop, or change medication.
+- Retrieval failures are shown as errors; they must not be interpreted as proof that a medicine or label does not exist.
 - Do not enter real patient-identifying information.
 
 ## Current limitations
 
-The rule set and evaluation fixture are small; labels are manually assigned; external retrieval depends on source availability; and no authentication, patient database, institutional integration, or production deployment is implemented. The report is useful for regression checks but cannot establish clinical validity.
+The rule set and evaluation fixtures are small; labels are manually assigned; external retrieval depends on source availability; and no authentication, patient database, institutional integration, or production deployment is implemented. Review records are session-scoped, not a governed review database or compliance audit log. Provenance improves inspectability but does not establish clinical validity.
 
-## Next practical steps
-
-1. Add more adversarial rule examples and review false positives/negatives deliberately.
-2. Track source freshness and external lookup failures as explicit states.
-3. Improve provenance and result export without collecting patient records.
-4. Only consider larger data/model work after evaluation quality and privacy boundaries are clear.
-
-See [DEVELOPERS_NOTES.md](DEVELOPERS_NOTES.md) and [docs/evaluation.md](docs/evaluation.md) for the update details.
-
-
-## Structured SignalGraph and human review
-
-The current `main` workflow now includes a small phrase-based structured context layer, an input-completeness indicator, medication-exposure pattern flags, a stage trace, and evidence/provenance objects. These are transparent software features, not clinical NLP or validated pharmacovigilance. Common direct negations such as “no chest pain” and “denies difficulty breathing” are excluded from the extracted-present symptom list; this limited matcher is not a substitute for clinical review.
-
-A reviewer can record a session-scoped disposition, evidence reviewed, notes, and follow-up requirements in the Streamlit interface, validate the fields, and download a JSON review bundle. MedFindr does not persist these review records to a database, and the trace is not a compliance audit log.
-
-Synthetic behavior checks: `python scripts/evaluate_signals.py` and `python scripts/evaluate_reviews.py`. Passing these fixtures indicates software behavior on the included cases only; it is not clinical validation.
+See DEVELOPERS_NOTES.md, docs/evaluation.md, and docs/evidence-reliability.md for implementation and scope details.

@@ -33,8 +33,8 @@ jobs:
       - name: Run urgency evaluation
         run: python scripts/evaluate.py
 
-      - name: Run medication signal evaluation
-        run: python scripts/evaluate_signals.py
+      - name: Run medication signal evaluation with machine-readable report
+        run: python scripts/evaluate_signals.py --json-out "$RUNNER_TEMP/medfindr-signal-evaluation.json"
 
       - name: Run review workflow evaluation
         run: python scripts/evaluate_reviews.py
