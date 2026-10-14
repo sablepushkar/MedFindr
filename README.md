@@ -61,3 +61,7 @@ For a walkthrough of what to run and what evidence to capture, see [the portfoli
 - Do not enter real patient-identifying information or use the app to make medication decisions.
 
 I am keeping the project focused on readable code, traceable sources and repeatable checks before adding more features. See [architecture](ARCHITECTURE.md), [evaluation notes](docs/evaluation.md) and [developer notes](DEVELOPERS_NOTES.md).
+
+---
+
+Copyright © 2026 Pushkar Sudam Sable. See [COPYRIGHT.md](COPYRIGHT.md) for ownership and license notes.
